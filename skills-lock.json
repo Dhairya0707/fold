@@ -1,0 +1,23 @@
+{
+  "version": 2,
+  "skills": {
+    "wensity-layout": {
+      "source": "wensity/skills",
+      "sourceType": "github",
+      "skillPath": "skills/wensity-layout/SKILL.md",
+      "computedHash": "08104f7cc1d2c9269a3ed438704b95c315ee979b4ecfe37c42dc550023376380"
+    },
+    "wensity-typography": {
+      "source": "wensity/skills",
+      "sourceType": "github",
+      "skillPath": "skills/wensity-typography/SKILL.md",
+      "computedHash": "4b93a9eafae881dc1cbe4d634da41c95c7dec3c797184bc905288c6de08ec6bc"
+    },
+    "wensity-ui-copy": {
+      "source": "wensity/skills",
+      "sourceType": "github",
+      "skillPath": "skills/wensity-ui-copy/SKILL.md",
+      "computedHash": "885d7806aade7a6a0451209ffa3fd5197a53a47b2298e17e5e7fb58a99d97b12"
+    }
+  }
+}

@@ -1,0 +1,78 @@
+# Fold
+
+> Fold (Fold Notes) is a free, quiet, hardware-grade local-first notes workspace and Progressive Web App (PWA) for the web. Capture thoughts instantly, store them exclusively on-device in IndexedDB, work completely offline, and keep full ownership of your writing with zero tracking, zero cookies, and zero accounts.
+
+## Product Identity
+
+- **Product Name:** Fold (Fold Notes)
+- **Tagline:** Notes without the noise
+- **Category:** Productivity / Local-First Note-Taking Web Application & PWA
+- **Canonical URL:** https://foldnotes.app
+- **Source Repository:** https://github.com/dhairya0707/fold
+- **Creator:** Dhairya Darji (@dhairya0707 — https://x.com/dhairya0707)
+- **Contact Email:** support.dhairyadarji@gmail.com
+- **Pricing:** 100% free forever, no paywalls or subscriptions (MIT License)
+
+## Core Philosophy
+
+- **Local-First:** Your browser is the primary database. Notes are written directly to local disk via IndexedDB with sub-millisecond commits—never queued behind cloud sync spinners or remote APIs.
+- **Privacy-First:** Fold collects zero telemetry, bundles zero analytics or error-reporting scripts, sets zero tracking cookies, requires no login or account, and sends zero note data over the network.
+- **Digital Minimalism:** No social feeds, no AI chatbots interrupting your draft, and no nested configuration sprawl. Warm paper (`#f4f0e6`) and dark ink (`#141511`) stationery themes designed for sustained calm focus.
+
+## Architecture
+
+- **Primary Database:** IndexedDB database `fold_db` (schema version `2`, object store `notes` keyed by `id` with `updated` and `folder` indexes).
+- **Emergency Recovery Mirror:** Automatic mirror in `localStorage` (`fold.notes.v1`) so edits in flight are never lost on reload or tab close, plus seamless migration from legacy `localStorage` notes.
+- **Cross-Tab Synchronization:** Real-time `BroadcastChannel` (`fold_sync_v2`) broadcasts `note_saved`, `note_deleted`, and `batch_updated` events across open windows/tabs with zero server round-trips.
+- **Zero Network Egress:** Once static assets load, all note creation, editing, full-text search, sorting, locking, pinning, and exporting execute strictly inside the local browser sandbox.
+- **Zero Cookies & Zero Accounts:** No session cookies, no authentication tokens, no third-party embeds, and no user registration.
+- **Self-Hosted Fonts:** `Instrument Sans`, `Fraunces`, and `JetBrains Mono` are bundled and self-hosted via `next/font/google` at build time—zero runtime font requests to external CDNs.
+- **Offline PWA:** Installable Progressive Web App (`/manifest.webmanifest`) backed by a dedicated Service Worker (`/sw.js`, cache `fold-v2.1`, network-first for navigations and cache-first for static assets) so Fold stays current on deploys while working offline on airplanes, subways, and air-gapped devices.
+
+## Storage, Backup & Portability
+
+- **Markdown Vault (.zip):** One-click ZIP export (`JSZip`) packaging all active notes into folder-organized `.md` files with standard YAML frontmatter (`title`, `date`, `folder`, `tag`, `starred`, `pinned`) plus `fold-vault-manifest.json`—ready for Obsidian, Bear, iA Writer, or any text editor.
+- **Full JSON Backup:** Download (`fold-notes-backup-YYYY-MM-DD.json`) and 1-click restore of your entire workspace, including metadata and soft-deleted notes.
+- **Single-Note Markdown Export & Copy:** Download any individual note as `<slug>.md` or copy clean CommonMark/GFM Markdown directly to the clipboard.
+- **Import Support:** Drag-and-drop or import `.md`, `.txt`, or `.json` vault backups directly into Fold.
+- **Eviction Protection:** Built-in Storage & Data Trust modal displays byte usage, `navigator.storage.estimate()`, and one-click `navigator.storage.persist()` browser storage pinning.
+
+## Keyboard Shortcut Reference
+
+Note: On Windows/Linux, replace `⌘` with `Ctrl`.
+
+### Global & Workspace Shortcuts
+- `⌘K`: Open Command Palette & Quick Switcher (when text is not selected inside the editor)
+- `⌘S`: Flush pending debounced save immediately to IndexedDB and confirm local persistence
+- `⌥⇧N` (or `N` outside inputs): Create a new note in the active folder
+- `⌘.`: Toggle Full Screen Zen Focus Mode (`Esc` exits)
+- `⌘P`: Pin or unpin the selected note
+- `⌘D`: Duplicate the selected note
+- `⌘\`: Toggle sidebar visibility
+- `⌥⇧L`: Lock or unlock the selected note
+- `T` (outside inputs): Toggle between warm Paper (`#f4f0e6`) and dark Ink (`#141511`) themes
+
+### Rich-Text Editor Shortcuts
+- `⌘B`: Bold
+- `⌘I`: Italic
+- `⌘K`: Insert or edit hyperlink (inside editor)
+- `⌘⌥1` / `⌘⌥2` / `⌘⌥3`: Toggle Heading (`H1` / `H2` / `H3`)
+- `⌘⇧8`: Toggle Bullet List
+- `⌘⇧7`: Toggle Numbered List
+- `⌘⇧9`: Toggle Interactive Task Checklist (`- [ ]` / `- [x]`)
+- `⌘⇧Y`: Highlight selected text
+- `⌘/`: Show or hide the Floating Bottom Formatting Dock
+- `⌘Z` / `⌘⇧Z`: Undo / Redo
+
+## Public URL Directory
+
+- [Home & Interactive Demo](https://foldnotes.app/): Landing overview, live interactive three-pane showcase, local-first architecture specs, and FAQ.
+- [Field Notes Blog](https://foldnotes.app/blog): Essays and engineering notes on local-first software, IndexedDB, digital minimalism, and craft.
+  - [The Architecture of Local-First Software](https://foldnotes.app/blog/local-first-software-craft)
+  - [File Over App: Why Plain Markdown Outlives Every Notes Startup](https://foldnotes.app/blog/file-over-app-markdown-longevity)
+  - [Browser Storage Limits, IndexedDB & Eviction Defense](https://foldnotes.app/blog/private-browser-storage-indexeddb)
+  - [Digital Minimalism: Notes Without the Noise](https://foldnotes.app/blog/digital-minimalism-notes)
+- [Privacy Policy](https://foldnotes.app/privacy): Zero-data guarantee explaining local browser storage and absence of tracking.
+- [Terms of Use](https://foldnotes.app/terms): Open usage terms, local data ownership, and MIT licensing summary.
+- [Fold Workspace App](https://foldnotes.app/app): Standalone distraction-free notes workspace (`noindex` client shell & PWA start URL).
+- [Extended Technical Spec](https://foldnotes.app/llms-full.txt): Deep-dive engineering reference for AI models and technical evaluators.

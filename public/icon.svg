@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Fold notes">
+  <rect width="512" height="512" rx="112" fill="#f4f0e6"/>
+  <rect x="14" y="14" width="484" height="484" rx="99" fill="none" stroke="#e2dac8" stroke-width="8"/>
+  <path d="M154 104h146l58 58v246a18 18 0 0 1-18 18H172a18 18 0 0 1-18-18V122a18 18 0 0 1 18-18Z" fill="#fffdf8"/>
+  <path d="M300 104v40a18 18 0 0 0 18 18h40" fill="#e7e0d1"/>
+  <path d="M154 104h146l58 58v246a18 18 0 0 1-18 18H172a18 18 0 0 1-18-18V122a18 18 0 0 1 18-18Z" fill="none" stroke="#191712" stroke-width="18" stroke-linejoin="round"/>
+  <path d="M300 104v40a18 18 0 0 0 18 18h40" fill="none" stroke="#191712" stroke-width="18" stroke-linejoin="round"/>
+  <path d="M202 248h138M202 304h138" stroke="#191712" stroke-width="15" stroke-linecap="round"/>
+  <path d="M202 360h78" stroke="#b8452c" stroke-width="15" stroke-linecap="round"/>
+</svg>
