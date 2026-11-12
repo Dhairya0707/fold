@@ -219,7 +219,7 @@ export function BlogListingClient({
                 onChange={(e) => setSearchOverride(e.target.value)}
                 placeholder="Search essays or topics…"
                 aria-label="Search blog articles"
-                className="w-full rounded-[9px] border border-[var(--border)] bg-[var(--surface-muted)]/75 py-1.5 pl-9 pr-8 text-[13px] text-[var(--ink)] placeholder:text-[var(--muted)]/80 transition-colors focus:border-[var(--accent)] focus:bg-[var(--surface-card)] focus:outline-none"
+                className="w-full rounded-[9px] border border-[var(--border)] bg-[var(--surface-muted)]/75 py-1.5 pl-9 pr-8 text-base sm:text-[13px] text-[var(--ink)] placeholder:text-[var(--muted)]/80 transition-colors focus:border-[var(--accent)] focus:bg-[var(--surface-card)] focus:outline-none"
               />
               {searchQuery && (
                 <button
@@ -229,7 +229,7 @@ export function BlogListingClient({
                     setSearchOverride("");
                   }}
                   aria-label="Clear search query"
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded p-0.5 text-[var(--muted)] hover:text-[var(--ink)]"
+                  className="hit-target absolute right-2.5 top-1/2 -translate-y-1/2 rounded p-0.5 text-[var(--muted)] hover:text-[var(--ink)]"
                 >
                   <X className="h-3.5 w-3.5" />
                 </button>
@@ -257,9 +257,9 @@ export function BlogListingClient({
                       type="button"
                       onClick={() => handleTagToggle(tag)}
                       aria-pressed={active}
-                      className={`rounded-[6px] border px-2 py-0.5 font-mono text-[11px] transition-all duration-150 ${
+                      className={`hit-target rounded-[6px] border px-2 py-1.5 sm:py-0.5 font-mono text-[11px] transition-all duration-150 ${
                         active
-                          ? "border-[var(--accent)] bg-[var(--accent-soft)] font-semibold text-[var(--accent)]"
+                          ? "border-[var(--accent)] bg-[var(--accent-soft)] font-semibold text-[var(--accent-on-muted,var(--accent))]"
                           : "border-[var(--border)] bg-[var(--surface-muted)] text-[var(--muted)] hover:border-[var(--border-strong)] hover:text-[var(--ink)]"
                       }`}
                     >
@@ -372,7 +372,7 @@ export function BlogListingClient({
                       key={tag}
                       type="button"
                       onClick={() => handleTagToggle(tag)}
-                      className="rounded-[6px] border border-[var(--border)] bg-[var(--surface-muted)] px-2 py-0.5 font-mono text-[11px] text-[var(--muted)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)]"
+                      className="hit-target rounded-[6px] border border-[var(--border)] bg-[var(--surface-muted)] px-2 py-1.5 sm:py-0.5 font-mono text-[11px] text-[var(--muted)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)]"
                     >
                       #{tag}
                     </button>
@@ -522,9 +522,9 @@ export function BlogListingClient({
                             key={tag}
                             type="button"
                             onClick={() => handleTagToggle(tag)}
-                            className={`rounded-[5px] border px-2 py-0.5 font-mono text-[10.5px] transition-colors ${
+                            className={`hit-target rounded-[5px] border px-2 py-1.5 sm:py-0.5 font-mono text-[10.5px] transition-colors ${
                               isSelected
-                                ? "border-[var(--accent)] bg-[var(--accent-soft)] font-semibold text-[var(--accent)]"
+                                ? "border-[var(--accent)] bg-[var(--accent-soft)] font-semibold text-[var(--accent-on-muted,var(--accent))]"
                                 : "border-[var(--border)] bg-[var(--surface-muted)] text-[var(--muted)] hover:border-[var(--accent)] hover:text-[var(--accent)]"
                             }`}
                           >

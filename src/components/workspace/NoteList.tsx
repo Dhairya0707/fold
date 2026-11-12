@@ -6,12 +6,12 @@ import { Tooltip } from "./CraftTooltip";
 import { SortMode } from "@/types/note";
 
 function stripHtml(html: string): string {
-  if (typeof document === "undefined") {
+  if (!html) return "";
+  if (typeof DOMParser === "undefined") {
     return html.replace(/<[^>]*>?/gm, "");
   }
-  const div = document.createElement("div");
-  div.innerHTML = html;
-  return div.textContent || div.innerText || "";
+  const doc = new DOMParser().parseFromString(html, "text/html");
+  return doc.body.textContent || "";
 }
 
 function formatRelativeTime(timestamp: number): string {
@@ -424,7 +424,7 @@ export function NoteList({ isEmbedded = false }: { isEmbedded?: boolean }) {
               <button
                 type="button"
                 onClick={() => createNote()}
-                className="flex h-7 w-7 items-center justify-center rounded-md text-[var(--muted,#5f594c)] hover:bg-[var(--hover,rgba(25,23,18,0.06))] hover:text-[var(--accent,#b8452c)] dark:text-neutral-400"
+                className="hit-target flex h-7 w-7 items-center justify-center rounded-md text-[var(--muted,#5f594c)] hover:bg-[var(--hover,rgba(25,23,18,0.06))] hover:text-[var(--accent,#b8452c)] dark:text-neutral-400"
                 aria-label="New note"
               >
                 <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
@@ -520,33 +520,32 @@ export function NoteList({ isEmbedded = false }: { isEmbedded?: boolean }) {
               return (
                 <div
                   key={note.id}
-                  onClick={() => selectNote(note.id)}
-                  onKeyDown={(event) => {
-                    if (event.target !== event.currentTarget) return;
-                    if (event.key === "Enter" || event.key === " ") {
-                      event.preventDefault();
-                      selectNote(note.id);
-                    }
-                  }}
-                  role="button"
-                  tabIndex={0}
-                  aria-current={isSelected ? "true" : undefined}
-                  className={`group relative flex cursor-pointer flex-col rounded-[10px] p-2.5 transition-all duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] active:scale-[0.985] focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[var(--accent,#b8452c)] ${
+                  className={`group relative flex flex-col rounded-[10px] p-2.5 transition-all duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] active:scale-[0.985] ${
                     isSelected
                       ? "border border-[var(--line-strong,rgba(25,23,18,0.2))] bg-[var(--surface,#fffdf8)] shadow-[0_2px_8px_-2px_rgba(45,36,22,0.1)] dark:border-white/15 dark:bg-[#22241d] dark:shadow-none"
                       : "border border-transparent hover:border-[var(--line,rgba(25,23,18,0.08))] hover:bg-[var(--surface,#fffdf8)]/60 dark:hover:border-white/5 dark:hover:bg-[#1e1f19]"
                   }`}
                 >
+                  {/* Stretched primary card button — avoids nested interactive controls */}
+                  <button
+                    type="button"
+                    onClick={() => selectNote(note.id)}
+                    aria-current={isSelected ? "true" : undefined}
+                    className="absolute inset-0 z-0 cursor-pointer rounded-[10px] focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[var(--accent,#b8452c)]"
+                  >
+                    <span className="sr-only">Open note: {note.title || "Untitled"}</span>
+                  </button>
+
                   {/* Top card catchlight if selected */}
                   {isSelected && (
                     <div
-                      className="pointer-events-none absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-white/80 to-transparent dark:via-white/20"
+                      className="pointer-events-none absolute inset-x-0 top-0 z-10 h-[1px] bg-gradient-to-r from-transparent via-white/80 to-transparent dark:via-white/20"
                       aria-hidden="true"
                     />
                   )}
 
                   {/* Card Title & Badges */}
-                  <div className="mb-1 flex items-start justify-between gap-1.5">
+                  <div className="pointer-events-none relative z-10 mb-1 flex items-start justify-between gap-1.5">
                     <h3 className="line-clamp-1 text-[13px] leading-[1.35] font-semibold text-[var(--ink,#191712)] dark:text-[#f4f0e6]">
                       <HighlightedText text={note.title || "Untitled"} query={query} />
                     </h3>
@@ -606,12 +605,12 @@ export function NoteList({ isEmbedded = false }: { isEmbedded?: boolean }) {
                   </div>
 
                   {/* Snippet Preview */}
-                  <p className="mb-2 line-clamp-2 text-xs text-[var(--muted,#5f594c)] leading-normal dark:text-neutral-400">
+                  <p className="pointer-events-none relative z-10 mb-2 line-clamp-2 text-xs text-[var(--muted,#5f594c)] leading-normal dark:text-neutral-400">
                     <HighlightedText text={snippet} query={query} />
                   </p>
 
                   {/* Card Footer Meta */}
-                  <div className="flex items-center justify-between text-[11px] text-[var(--muted,#5f594c)] pt-0.5 dark:text-neutral-400">
+                  <div className="pointer-events-none relative z-10 flex items-center justify-between text-[11px] text-[var(--muted,#5f594c)] pt-0.5 dark:text-neutral-400">
                     <div className="flex items-center gap-1.5">
                       <span className="text-[11px] tabular-nums">
                         {formatRelativeTime(note.updated)}
@@ -624,15 +623,12 @@ export function NoteList({ isEmbedded = false }: { isEmbedded?: boolean }) {
                     </div>
 
                     {/* Quick Card Hover Actions: Star & Delete or Restore */}
-                    <div className="flex items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100">
+                    <div className="pointer-events-auto relative z-10 flex items-center gap-0.5 opacity-100 transition-opacity [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100 [@media(hover:hover)]:group-focus-within:opacity-100">
                       {folder === "trash" ? (
                         <>
                           <button
                             type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              restoreNote(note.id);
-                            }}
+                            onClick={() => restoreNote(note.id)}
                             className="hit-target flex h-5 items-center gap-1 rounded bg-[var(--accent,#b8452c)]/10 px-1.5 text-[10px] font-semibold text-[var(--accent,#b8452c)] hover:bg-[var(--accent,#b8452c)] hover:text-white"
                             title="Restore note from trash"
                             aria-label="Restore note from trash"
@@ -641,10 +637,7 @@ export function NoteList({ isEmbedded = false }: { isEmbedded?: boolean }) {
                           </button>
                           <button
                             type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              deleteNote(note.id);
-                            }}
+                            onClick={() => deleteNote(note.id)}
                             className="hit-target flex h-5 w-5 items-center justify-center rounded text-[var(--danger,#a53c27)] hover:bg-[var(--danger,#a53c27)]/10"
                             title="Permanently delete"
                             aria-label="Permanently delete note"
@@ -656,10 +649,7 @@ export function NoteList({ isEmbedded = false }: { isEmbedded?: boolean }) {
                         <>
                           <button
                             type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              toggleStar(note.id);
-                            }}
+                            onClick={() => toggleStar(note.id)}
                             className="hit-target flex h-5 w-5 items-center justify-center rounded text-[var(--muted,#5f594c)] hover:text-[var(--star-gold,#d97706)] hover:scale-120 active:scale-90 transition-all duration-150 ease-[cubic-bezier(0.16,1,0.3,1)]"
                             title={note.starred ? "Remove star" : "Star note"}
                             aria-label={note.starred ? "Remove star" : "Star note"}
@@ -676,10 +666,7 @@ export function NoteList({ isEmbedded = false }: { isEmbedded?: boolean }) {
 
                           <button
                             type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              deleteNote(note.id);
-                            }}
+                            onClick={() => deleteNote(note.id)}
                             className="hit-target flex h-5 w-5 items-center justify-center rounded text-[var(--muted,#5f594c)] hover:text-[var(--danger,#a53c27)] hover:scale-115 active:scale-90 transition-all duration-150 ease-[cubic-bezier(0.16,1,0.3,1)]"
                             title="Move to trash"
                             aria-label="Move to trash"

@@ -64,6 +64,12 @@ const STORAGE_KEYS = [
       "Synchronous emergency mirror and legacy migration cache flushed on beforeunload and pagehide so rapid tab closes never drop in-flight keystrokes.",
   },
   {
+    key: "fold.folders.v1",
+    kind: "localStorage",
+    purpose:
+      "Persists your custom workspace folder list alongside default folders so newly created folders remain available even before adding notes.",
+  },
+  {
     key: "fold.theme.v1",
     kind: "localStorage",
     purpose:

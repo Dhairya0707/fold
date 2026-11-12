@@ -494,6 +494,8 @@ export function HamburgerMenu({
     );
   }
 
+  const hitSize = Math.max(44, size + 20);
+
   return (
     <button
       type={type}
@@ -514,7 +516,7 @@ export function HamburgerMenu({
         "disabled:cursor-not-allowed disabled:opacity-50",
         className,
       )}
-      style={{ width: size + 16, height: size + 16, ...style }}
+      style={{ width: hitSize, height: hitSize, ...style }}
       {...props}
     >
       {glyph}

@@ -3,6 +3,22 @@
  * Single source of truth for SEO, canonical URLs, author info, and legal telemetry.
  */
 
+const DEFAULT_SITE_URL = "https://foldnotes.web.app";
+
+function resolveSiteUrl(raw: string | undefined): string {
+  const candidate = raw?.trim();
+  if (!candidate) return DEFAULT_SITE_URL;
+  try {
+    const parsed = new URL(candidate);
+    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+      return DEFAULT_SITE_URL;
+    }
+    return parsed.origin;
+  } catch {
+    return DEFAULT_SITE_URL;
+  }
+}
+
 const SUPPORT_EMAIL =
   process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "support.dhairyadarji@gmail.com";
 
@@ -17,7 +33,7 @@ export const SITE_CONFIG = {
   description:
     "A quiet, private, hardware-grade notes workspace for the web. Capture thoughts instantly, persist them on-device with IndexedDB, and keep your mind calm. Zero tracking, zero cloud, zero accounts.",
   /** Production domain used for canonical links and Open Graph metadata */
-  url: process.env.NEXT_PUBLIC_SITE_URL || "https://foldnotes.app",
+  url: resolveSiteUrl(process.env.NEXT_PUBLIC_SITE_URL),
   author: {
     name: "Dhairya Darji",
     handle: "@dhairya0707",

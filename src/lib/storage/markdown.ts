@@ -1,5 +1,6 @@
-import { Note } from "@/types/note";
-import JSZip from "jszip";
+import type { Note } from "@/types/note";
+
+export const MAX_IMPORT_BYTES = 10 * 1024 * 1024;
 
 export function sanitizeFileName(name: string): string {
   return (
@@ -23,7 +24,7 @@ export function escapeHtml(str: string): string {
 export function sanitizeUrl(url: string | null | undefined): string | null {
   if (!url) return null;
   const trimmed = url.trim();
-  if (/^(https?:|\/|mailto:)/i.test(trimmed)) {
+  if (/^(https?:\/\/|mailto:|\/(?!\/))/i.test(trimmed)) {
     return trimmed;
   }
   return null;
@@ -34,12 +35,12 @@ export function sanitizeUrl(url: string | null | undefined): string | null {
  */
 export function htmlToMarkdown(html: string): string {
   if (!html) return "";
-  if (typeof document === "undefined") {
+  if (typeof DOMParser === "undefined" || typeof document === "undefined") {
     return html.replace(/<[^>]*>?/gm, "");
   }
 
-  const container = document.createElement("div");
-  container.innerHTML = html;
+  const parsedDoc = new DOMParser().parseFromString(html, "text/html");
+  const container = parsedDoc.body;
 
   // Process task items first
   container.querySelectorAll('li[data-type="taskItem"], .check-row').forEach((item) => {
@@ -49,7 +50,7 @@ export function htmlToMarkdown(html: string): string {
     const checkboxToken = isChecked ? "- [x] " : "- [ ] ";
     const textNode = item.querySelector("p") || item.querySelector("span") || item;
     const text = textNode.textContent?.trim() || "";
-    const p = document.createElement("p");
+    const p = parsedDoc.createElement("p");
     p.textContent = checkboxToken + text;
     item.replaceWith(p);
   });
@@ -58,21 +59,21 @@ export function htmlToMarkdown(html: string): string {
   container.querySelectorAll("h1, h2, h3, h4, h5, h6").forEach((h) => {
     const level = parseInt(h.tagName.substring(1), 10) || 2;
     const prefix = "#".repeat(level) + " ";
-    const p = document.createElement("p");
+    const p = parsedDoc.createElement("p");
     p.textContent = prefix + (h.textContent?.trim() || "");
     h.replaceWith(p);
   });
 
   // Process standard list items
   container.querySelectorAll("li").forEach((li) => {
-    const p = document.createElement("p");
+    const p = parsedDoc.createElement("p");
     p.textContent = "- " + (li.textContent?.trim() || "");
     li.replaceWith(p);
   });
 
   // Process blockquotes
   container.querySelectorAll("blockquote").forEach((bq) => {
-    const p = document.createElement("p");
+    const p = parsedDoc.createElement("p");
     p.textContent = "> " + (bq.textContent?.trim() || "");
     bq.replaceWith(p);
   });
@@ -109,7 +110,7 @@ export function htmlToMarkdown(html: string): string {
 
     if (prefix || suffix) {
       const text = el.textContent || "";
-      el.replaceWith(document.createTextNode(prefix + text + suffix));
+      el.replaceWith(parsedDoc.createTextNode(prefix + text + suffix));
     }
   }
 
@@ -274,11 +275,19 @@ export function exportAllNotesAsJson(notes: Note[]): void {
   } catch {}
 }
 
+function escapeYamlString(value: string): string {
+  return value
+    .replace(/\\/g, "\\\\")
+    .replace(/"/g, '\\"')
+    .replace(/[\r\n]+/g, " ");
+}
+
 /**
  * Exports all active notes as individual Markdown files inside a .zip archive,
  * organized with standard YAML frontmatter for seamless import into Obsidian, Bear, or iA Writer.
  */
 export async function exportAllNotesAsZip(notes: Note[]): Promise<void> {
+  const { default: JSZip } = await import("jszip");
   const zip = new JSZip();
   const dateStr = new Date().toISOString().slice(0, 10);
 
@@ -298,18 +307,23 @@ export async function exportAllNotesAsZip(notes: Note[]): Promise<void> {
     usedFileNames.add(`${note.folder}/${fileName}`);
 
     const mdContent = htmlToMarkdown(note.body);
-    const dateFormatted = new Date(note.updated).toISOString().slice(0, 10);
+    const updatedDate = Number.isFinite(note.updated) ? new Date(note.updated) : new Date();
+    const dateFormatted = (
+      Number.isNaN(updatedDate.getTime()) ? new Date() : updatedDate
+    )
+      .toISOString()
+      .slice(0, 10);
     const frontmatter = [
       "---",
-      `title: "${rawTitle.replace(/"/g, '\\"')}"`,
+      `title: "${escapeYamlString(rawTitle)}"`,
       `date: ${dateFormatted}`,
-      `folder: "${note.folder}"`,
-      `tag: "${note.tag}"`,
+      `folder: "${escapeYamlString(note.folder || "")}"`,
+      `tag: "${escapeYamlString(note.tag || "")}"`,
       `starred: ${Boolean(note.starred)}`,
       `pinned: ${Boolean(note.pinned)}`,
       "---",
       "",
-      `# ${rawTitle}`,
+      `# ${rawTitle.replace(/[\r\n]+/g, " ")}`,
       "",
       mdContent,
       "",
@@ -348,18 +362,94 @@ export interface ImportedNotePayload {
   };
 }
 
+/**
+ * Validates and coerces an untrusted JSON object into a typed Note without raw object spread.
+ */
+export function coerceImportedNote(raw: unknown): Note | null {
+  if (raw === null || typeof raw !== "object" || Array.isArray(raw)) {
+    return null;
+  }
+  const proto = Object.getPrototypeOf(raw);
+  if (proto !== Object.prototype && proto !== null) {
+    return null;
+  }
+
+  const record = raw as Record<string, unknown>;
+  if (
+    typeof record.id !== "string" ||
+    record.id.trim().length === 0 ||
+    typeof record.title !== "string" ||
+    typeof record.body !== "string"
+  ) {
+    return null;
+  }
+
+  let updated = Date.now();
+  if (typeof record.updated === "number" && Number.isFinite(record.updated)) {
+    updated = record.updated;
+  } else if (typeof record.updatedAt === "number" && Number.isFinite(record.updatedAt)) {
+    updated = record.updatedAt;
+  } else if (typeof record.updatedAt === "string") {
+    const parsedTime = Date.parse(record.updatedAt);
+    if (Number.isFinite(parsedTime)) {
+      updated = parsedTime;
+    }
+  }
+
+  const folder =
+    typeof record.folder === "string" && record.folder.trim()
+      ? record.folder.trim()
+      : "Inbox";
+  const tag =
+    typeof record.tag === "string"
+      ? record.tag.toLowerCase().replace(/^#/, "").trim()
+      : "";
+
+  return {
+    id: record.id.trim(),
+    title: record.title,
+    body: record.body,
+    folder,
+    tag,
+    updated,
+    starred: record.starred === true,
+    pinned: record.pinned === true,
+    locked: record.locked === true,
+    deletedAt:
+      typeof record.deletedAt === "number" && Number.isFinite(record.deletedAt)
+        ? record.deletedAt
+        : null,
+  };
+}
+
 export async function processImportFile(file: File): Promise<ImportedNotePayload> {
+  if (file.size > MAX_IMPORT_BYTES) {
+    throw new Error("Import file exceeds the 10 MB size limit.");
+  }
+
   const text = await file.text();
 
-  if (file.name.endsWith(".json") || file.type === "application/json") {
+  if (file.name.toLowerCase().endsWith(".json") || file.type === "application/json") {
+    let parsed: unknown;
     try {
-      const parsed = JSON.parse(text);
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        return { isBackup: true, notes: parsed };
-      }
-    } catch (e) {
-      console.warn("Could not parse JSON import, treating as text", e);
+      parsed = JSON.parse(text);
+    } catch {
+      throw new Error("Invalid JSON backup file.");
     }
+
+    if (!Array.isArray(parsed)) {
+      throw new Error("JSON backup must be an array of notes.");
+    }
+
+    const validNotes = parsed
+      .map(coerceImportedNote)
+      .filter((n): n is Note => n !== null);
+
+    if (validNotes.length === 0) {
+      throw new Error("No valid notes found in JSON backup.");
+    }
+
+    return { isBackup: true, notes: validNotes };
   }
 
   // Treat as Markdown or plain text

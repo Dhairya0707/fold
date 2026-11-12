@@ -4,10 +4,21 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { audioHaptics } from "@/lib/audio-haptics";
 
+const CRAFT_SHORTCUTS = [
+  { key: "⌘B", label: "Bold", hint: "Wraps selection in **bold** markdown" },
+  { key: "⌘I", label: "Italic", hint: "Emphasizes a phrase with *italic*" },
+  { key: "⌘⇧Y", label: "Highlight", hint: "Marks a line in warm amber ink" },
+  { key: "⌘⇧9", label: "Checklist", hint: "Turns the current line into a task" },
+  { key: "⌘.", label: "Zen mode", hint: "Fades sidebars for full-bleed focus" },
+] as const;
+
 export function CraftSpecs() {
   const [task1Checked, setTask1Checked] = useState(true);
   const [task2Checked, setTask2Checked] = useState(false);
   const [activeShortcut, setActiveShortcut] = useState("⌘⇧9");
+
+  const activeShortcutItem =
+    CRAFT_SHORTCUTS.find((item) => item.key === activeShortcut) ?? CRAFT_SHORTCUTS[3];
 
   const toggleTask = (taskNum: 1 | 2) => {
     audioHaptics.trigger("tap");
@@ -104,17 +115,12 @@ export function CraftSpecs() {
               {/* Interactive Keybinding Deck */}
               <div className="craft-shortcuts-deck">
                 <div className="shortcuts-row" role="group" aria-label="Keyboard shortcut selector">
-                  {[
-                    { key: "⌘B", label: "Bold" },
-                    { key: "⌘I", label: "Italic" },
-                    { key: "⌘⇧Y", label: "Highlight" },
-                    { key: "⌘⇧9", label: "Checklist" },
-                    { key: "⌘.", label: "Zen mode" },
-                  ].map((item) => (
+                  {CRAFT_SHORTCUTS.map((item) => (
                     <button
                       key={item.key}
                       type="button"
                       onClick={() => handleShortcutClick(item.key)}
+                      aria-pressed={activeShortcut === item.key}
                       className={`craft-shortcut-btn ${activeShortcut === item.key ? "craft-shortcut-btn--active" : ""}`}
                     >
                       <span className="shortcut-key font-mono">{item.key}</span>
@@ -122,6 +128,15 @@ export function CraftSpecs() {
                     </button>
                   ))}
                 </div>
+                <p
+                  aria-live="polite"
+                  className="mt-2.5 flex items-center gap-2 text-[12.5px] text-[var(--muted)]"
+                >
+                  <span className="font-mono font-semibold text-[var(--accent)]">
+                    {activeShortcutItem.key}
+                  </span>
+                  <span>{activeShortcutItem.hint}</span>
+                </p>
               </div>
 
               {/* High-Density Architecture Specification Rows */}

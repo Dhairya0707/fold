@@ -13,7 +13,16 @@ self.addEventListener("install", (event) => {
   event.waitUntil(
     caches
       .open(CACHE_NAME)
-      .then((cache) => cache.addAll(OFFLINE_URLS))
+      .then((cache) =>
+        Promise.allSettled(
+          OFFLINE_URLS.map(async (url) => {
+            const response = await fetch(url, { cache: "reload" });
+            if (response.ok) {
+              await cache.put(url, response);
+            }
+          })
+        )
+      )
       .then(() => self.skipWaiting())
   );
 });
@@ -33,7 +42,22 @@ self.addEventListener("activate", (event) => {
 
 self.addEventListener("fetch", (event) => {
   const { request } = event;
-  if (request.method !== "GET" || !request.url.startsWith(self.location.origin)) {
+  if (request.method !== "GET") {
+    return;
+  }
+
+  let url;
+  try {
+    url = new URL(request.url);
+  } catch {
+    return;
+  }
+
+  if (
+    url.origin !== self.location.origin ||
+    url.pathname.startsWith("/api/") ||
+    url.pathname === "/sw.js"
+  ) {
     return;
   }
 
@@ -51,6 +75,30 @@ self.addEventListener("fetch", (event) => {
         })
         .catch(() =>
           caches.match(request).then((cached) => cached || caches.match("/app"))
+        )
+    );
+    return;
+  }
+
+  const isStaticAsset =
+    url.pathname.startsWith("/_next/static/") ||
+    url.pathname.startsWith("/icon") ||
+    url.pathname.startsWith("/apple-touch-icon") ||
+    /\.(?:png|svg|woff2)$/i.test(url.pathname);
+
+  // Network-first for HTML/text/manifest/RSC routes (e.g., /llms.txt, /blog).
+  if (!isStaticAsset) {
+    event.respondWith(
+      fetch(request)
+        .then((response) => {
+          if (response.ok) {
+            const copy = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+          }
+          return response;
+        })
+        .catch(() =>
+          caches.match(request).then((cached) => cached || Response.error())
         )
     );
     return;

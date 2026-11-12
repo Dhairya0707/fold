@@ -28,7 +28,7 @@ type BlockNode =
 
 function isSafeHref(href: string): boolean {
   const trimmed = href.trim();
-  return /^(https?:\/\/|mailto:|\/|#)/i.test(trimmed);
+  return /^(https?:\/\/|mailto:|\/(?!\/)|#)/i.test(trimmed);
 }
 
 function parseTableCells(line: string): string[] {
@@ -700,7 +700,7 @@ export function MarkdownRenderer({ content }: MarkdownRendererProps) {
                       aria-label={item.checked ? "Completed item" : "Pending item"}
                       className={`mt-[3px] flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-[5px] border transition-colors ${
                         item.checked
-                          ? "border-[var(--accent)] bg-[var(--accent)] text-white shadow-[0_1px_3px_rgba(184,69,44,0.3)]"
+                          ? "border-[var(--accent)] bg-[var(--accent)] text-[var(--accent-fg,#ffffff)] shadow-[0_1px_3px_rgba(184,69,44,0.3)]"
                           : "border-[var(--border-strong)] bg-[var(--surface)]"
                       }`}
                     >

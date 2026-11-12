@@ -1,6 +1,8 @@
 import { ImageResponse } from "next/og";
 import { SITE_CONFIG } from "@/lib/site";
 
+export const dynamic = "force-static";
+
 export const alt = "Fold: notes without the noise";
 export const size = {
   width: 1200,

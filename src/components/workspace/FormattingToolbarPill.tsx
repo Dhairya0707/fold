@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Editor } from "@tiptap/core";
+import type { Editor } from "@tiptap/react";
 import { Tooltip } from "./CraftTooltip";
 import { audioHaptics } from "@/lib/audio-haptics";
 
@@ -51,7 +51,7 @@ export function FormattingToolbarPill({
   const btnClass = (active: boolean, disabled: boolean = false) =>
     `hit-target flex h-7 w-7 shrink-0 items-center justify-center rounded-[7px] text-xs transition-all duration-120 ease-[cubic-bezier(0.16,1,0.3,1)] ${
       disabled || isLocked
-        ? "opacity-30 cursor-not-allowed text-[var(--muted,#5f594c)] dark:text-neutral-500"
+        ? "opacity-30 cursor-not-allowed text-[var(--faint,#595245)] dark:text-[#928c7d]"
         : active
         ? "bg-[var(--accent,#b8452c)]/15 text-[var(--accent,#b8452c)] font-semibold shadow-2xs active:scale-90"
         : "text-[var(--muted,#5f594c)] hover:bg-[var(--hover,rgba(25,23,18,0.06))] hover:text-[var(--ink,#191712)] active:scale-90 dark:text-neutral-400 dark:hover:text-[#f4f0e6]"

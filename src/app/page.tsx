@@ -16,8 +16,6 @@ import {
   serializeJsonLd,
 } from "@/lib/seo";
 
-export const instant = false;
-
 export default function Home() {
   const softwareJsonLd = getSoftwareApplicationJsonLd();
   const webSiteJsonLd = getWebSiteJsonLd();

@@ -14,7 +14,14 @@ interface ErrorBoundaryProps {
 
 export default function ErrorPage({ error, retry }: ErrorBoundaryProps) {
   useEffect(() => {
-    console.error("Fold boundary caught error:", error);
+    if (process.env.NODE_ENV === "production") {
+      console.error("Fold boundary caught error:", {
+        name: error?.name || "Error",
+        digest: error?.digest ?? null,
+      });
+    } else {
+      console.error("Fold boundary caught error:", error);
+    }
   }, [error]);
 
   const digest =

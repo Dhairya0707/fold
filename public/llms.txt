@@ -7,7 +7,7 @@
 - **Product Name:** Fold (Fold Notes)
 - **Tagline:** Notes without the noise
 - **Category:** Productivity / Local-First Note-Taking Web Application & PWA
-- **Canonical URL:** https://foldnotes.app
+- **Canonical URL:** https://foldnotes.web.app
 - **Source Repository:** https://github.com/dhairya0707/fold
 - **Creator:** Dhairya Darji (@dhairya0707 — https://x.com/dhairya0707)
 - **Contact Email:** support.dhairyadarji@gmail.com
@@ -22,11 +22,11 @@
 ## Architecture
 
 - **Primary Database:** IndexedDB database `fold_db` (schema version `2`, object store `notes` keyed by `id` with `updated` and `folder` indexes).
-- **Emergency Recovery Mirror:** Automatic mirror in `localStorage` (`fold.notes.v1`) so edits in flight are never lost on reload or tab close, plus seamless migration from legacy `localStorage` notes.
+- **Emergency Recovery Mirror & Local Preferences:** Automatic mirror in `localStorage` (`fold.notes.v1`) so edits in flight are never lost on reload or tab close, custom folder list (`fold.folders.v1`), and UI preferences (`fold.theme.v1`, `fold.sound.v1`, `fold.lastBackupDate`), plus seamless migration from legacy `localStorage` notes.
 - **Cross-Tab Synchronization:** Real-time `BroadcastChannel` (`fold_sync_v2`) broadcasts `note_saved`, `note_deleted`, and `batch_updated` events across open windows/tabs with zero server round-trips.
 - **Zero Network Egress:** Once static assets load, all note creation, editing, full-text search, sorting, locking, pinning, and exporting execute strictly inside the local browser sandbox.
 - **Zero Cookies & Zero Accounts:** No session cookies, no authentication tokens, no third-party embeds, and no user registration.
-- **Self-Hosted Fonts:** `Instrument Sans`, `Fraunces`, and `JetBrains Mono` are bundled and self-hosted via `next/font/google` at build time—zero runtime font requests to external CDNs.
+- **Self-Hosted Fonts:** `Instrument Sans` and `JetBrains Mono` are bundled and self-hosted via `next/font/google` at build time—zero runtime font requests to external CDNs.
 - **Offline PWA:** Installable Progressive Web App (`/manifest.webmanifest`) backed by a dedicated Service Worker (`/sw.js`, cache `fold-v2.1`, network-first for navigations and cache-first for static assets) so Fold stays current on deploys while working offline on airplanes, subways, and air-gapped devices.
 
 ## Storage, Backup & Portability
@@ -42,7 +42,8 @@
 Note: On Windows/Linux, replace `⌘` with `Ctrl`.
 
 ### Global & Workspace Shortcuts
-- `⌘K`: Open Command Palette & Quick Switcher (when text is not selected inside the editor)
+- `⌘K`: Open Command Palette & Quick Switcher (when text is not selected and caret is not inside a link)
+- `/` (outside text inputs/dialogs): Focus the workspace search bar (`Esc` clears and blurs)
 - `⌘S`: Flush pending debounced save immediately to IndexedDB and confirm local persistence
 - `⌥⇧N` (or `N` outside inputs): Create a new note in the active folder
 - `⌘.`: Toggle Full Screen Zen Focus Mode (`Esc` exits)
@@ -55,24 +56,24 @@ Note: On Windows/Linux, replace `⌘` with `Ctrl`.
 ### Rich-Text Editor Shortcuts
 - `⌘B`: Bold
 - `⌘I`: Italic
-- `⌘K`: Insert or edit hyperlink (inside editor)
+- `⌘K`: Insert or edit hyperlink (inside editor when text is selected or caret is in a link)
 - `⌘⌥1` / `⌘⌥2` / `⌘⌥3`: Toggle Heading (`H1` / `H2` / `H3`)
 - `⌘⇧8`: Toggle Bullet List
 - `⌘⇧7`: Toggle Numbered List
 - `⌘⇧9`: Toggle Interactive Task Checklist (`- [ ]` / `- [x]`)
 - `⌘⇧Y`: Highlight selected text
-- `⌘/`: Show or hide the Floating Bottom Formatting Dock
+- `⌘/`: Show or hide the Floating Bottom Formatting Dock (when a note is active)
 - `⌘Z` / `⌘⇧Z`: Undo / Redo
 
 ## Public URL Directory
 
-- [Home & Interactive Demo](https://foldnotes.app/): Landing overview, live interactive three-pane showcase, local-first architecture specs, and FAQ.
-- [Field Notes Blog](https://foldnotes.app/blog): Essays and engineering notes on local-first software, IndexedDB, digital minimalism, and craft.
-  - [The Architecture of Local-First Software](https://foldnotes.app/blog/local-first-software-craft)
-  - [File Over App: Why Plain Markdown Outlives Every Notes Startup](https://foldnotes.app/blog/file-over-app-markdown-longevity)
-  - [Browser Storage Limits, IndexedDB & Eviction Defense](https://foldnotes.app/blog/private-browser-storage-indexeddb)
-  - [Digital Minimalism: Notes Without the Noise](https://foldnotes.app/blog/digital-minimalism-notes)
-- [Privacy Policy](https://foldnotes.app/privacy): Zero-data guarantee explaining local browser storage and absence of tracking.
-- [Terms of Use](https://foldnotes.app/terms): Open usage terms, local data ownership, and MIT licensing summary.
-- [Fold Workspace App](https://foldnotes.app/app): Standalone distraction-free notes workspace (`noindex` client shell & PWA start URL).
-- [Extended Technical Spec](https://foldnotes.app/llms-full.txt): Deep-dive engineering reference for AI models and technical evaluators.
+- [Home & Interactive Demo](https://foldnotes.web.app/): Landing overview, live interactive three-pane showcase, local-first architecture specs, and FAQ.
+- [Field Notes Blog](https://foldnotes.web.app/blog): Essays and engineering notes on local-first software, IndexedDB, digital minimalism, and craft.
+  - [The Architecture of Local-First Software](https://foldnotes.web.app/blog/local-first-software-craft)
+  - [File Over App: Why Plain Markdown Outlives Every Notes Startup](https://foldnotes.web.app/blog/file-over-app-markdown-longevity)
+  - [Browser Storage Limits, IndexedDB & Eviction Defense](https://foldnotes.web.app/blog/private-browser-storage-indexeddb)
+  - [Digital Minimalism: Notes Without the Noise](https://foldnotes.web.app/blog/digital-minimalism-notes)
+- [Privacy Policy](https://foldnotes.web.app/privacy): Zero-data guarantee explaining local browser storage and absence of tracking.
+- [Terms of Use](https://foldnotes.web.app/terms): Open usage terms, local data ownership, and MIT licensing summary.
+- [Fold Workspace App](https://foldnotes.web.app/app): Standalone distraction-free notes workspace (`noindex` client shell & PWA start URL).
+- [Extended Technical Spec](https://foldnotes.web.app/llms-full.txt): Deep-dive engineering reference for AI models and technical evaluators.

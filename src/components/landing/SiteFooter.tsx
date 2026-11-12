@@ -146,15 +146,15 @@ export function SiteFooter() {
           <div className="footer-bottom-left flex items-center gap-4 flex-wrap">
             <span>&copy; 2026 Fold. Designed for clarity.</span>
             <span aria-hidden="true" className="text-[var(--border-strong)]">/</span>
-            <Link href="/privacy" className="hover:text-[var(--ink)] transition-colors underline underline-offset-2">
+            <Link href="/privacy" className="hit-target inline-flex items-center hover:text-[var(--ink)] transition-colors underline underline-offset-2">
               Privacy policy
             </Link>
             <span aria-hidden="true" className="text-[var(--border-strong)]">/</span>
-            <Link href="/terms" className="hover:text-[var(--ink)] transition-colors underline underline-offset-2">
+            <Link href="/terms" className="hit-target inline-flex items-center hover:text-[var(--ink)] transition-colors underline underline-offset-2">
               Terms of use
             </Link>
             <span aria-hidden="true" className="text-[var(--border-strong)]">/</span>
-            <a href={SITE_CONFIG.links.contactEmail} className="hover:text-[var(--ink)] transition-colors underline underline-offset-2">
+            <a href={SITE_CONFIG.links.contactEmail} className="hit-target inline-flex items-center hover:text-[var(--ink)] transition-colors underline underline-offset-2">
               Contact
             </a>
             <span aria-hidden="true" className="text-[var(--border-strong)]">/</span>
@@ -163,7 +163,7 @@ export function SiteFooter() {
               target="_blank"
               rel="noopener noreferrer"
               onClick={handleNavClick}
-              className="hover:text-[var(--ink)] transition-colors underline underline-offset-2"
+              className="hit-target inline-flex items-center hover:text-[var(--ink)] transition-colors underline underline-offset-2"
             >
               GitHub
             </a>

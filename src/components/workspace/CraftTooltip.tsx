@@ -126,35 +126,15 @@ export function Tooltip({
     };
   }, [isOpen, label, shortcut, computeAndApplyPosition]);
 
-  useEffect(() => {
-    if (!isOpen) return;
-    const handleReposition = () => {
-      computeAndApplyPosition();
-    };
-    window.addEventListener("resize", handleReposition);
-    window.addEventListener("scroll", handleReposition, true);
-    return () => {
-      window.removeEventListener("resize", handleReposition);
-      window.removeEventListener("scroll", handleReposition, true);
-    };
-  }, [isOpen, computeAndApplyPosition]);
-
-  useEffect(() => {
-    return () => {
-      if (timerRef.current) clearTimeout(timerRef.current);
-      if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
-    };
-  }, []);
-
-  const showTooltip = () => {
+  const showTooltip = useCallback(() => {
     if (timerRef.current) clearTimeout(timerRef.current);
     timerRef.current = setTimeout(() => {
       setIsVisible(false);
       setIsOpen(true);
     }, delayMs);
-  };
+  }, [delayMs]);
 
-  const hideTooltip = () => {
+  const hideTooltip = useCallback(() => {
     if (timerRef.current) clearTimeout(timerRef.current);
     if (rafRef.current !== null) {
       cancelAnimationFrame(rafRef.current);
@@ -162,7 +142,34 @@ export function Tooltip({
     }
     setIsVisible(false);
     setIsOpen(false);
-  };
+  }, []);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleReposition = () => {
+      computeAndApplyPosition();
+    };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        hideTooltip();
+      }
+    };
+    window.addEventListener("resize", handleReposition);
+    window.addEventListener("scroll", handleReposition, true);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("resize", handleReposition);
+      window.removeEventListener("scroll", handleReposition, true);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isOpen, computeAndApplyPosition, hideTooltip]);
+
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+      if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
+    };
+  }, []);
 
   const hiddenOffset =
     resolvedSide === "top"

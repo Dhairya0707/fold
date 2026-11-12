@@ -12,6 +12,7 @@ export function CommandPalette() {
     selectedId,
     selectNote,
     createNote,
+    updateNoteTitle,
     togglePin,
     toggleLock,
     duplicateNote,
@@ -27,15 +28,52 @@ export function CommandPalette() {
   const [search, setSearch] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
+  const itemRefs = useRef<Array<HTMLButtonElement | null>>([]);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
+  const wasOpenRef = useRef(false);
 
-  // Focus input on open
+  // Focus input on open; reset search/index and restore previous focus on close
   useEffect(() => {
     if (commandPaletteOpen) {
+      wasOpenRef.current = true;
+      previousFocusRef.current = document.activeElement as HTMLElement | null;
       requestAnimationFrame(() => {
         inputRef.current?.focus();
       });
+    } else if (wasOpenRef.current) {
+      wasOpenRef.current = false;
+      setSearch("");
+      setSelectedIndex(0);
+      const prev = previousFocusRef.current;
+      previousFocusRef.current = null;
+      if (prev && prev.isConnected) {
+        requestAnimationFrame(() => {
+          if (!document.activeElement || document.activeElement === document.body) {
+            prev.focus();
+          }
+        });
+      }
     }
   }, [commandPaletteOpen]);
+
+  // Dismiss on Escape anywhere at document level while open
+  useEffect(() => {
+    if (!commandPaletteOpen) return;
+    const onDocKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        setCommandPaletteOpen(false);
+      }
+    };
+    document.addEventListener("keydown", onDocKeyDown);
+    return () => document.removeEventListener("keydown", onDocKeyDown);
+  }, [commandPaletteOpen, setCommandPaletteOpen]);
+
+  // Keep keyboard-selected item visible inside scrollable results
+  useEffect(() => {
+    if (!commandPaletteOpen) return;
+    itemRefs.current[selectedIndex]?.scrollIntoView({ block: "nearest" });
+  }, [selectedIndex, commandPaletteOpen]);
 
   // Actions catalog
   const staticActions = useMemo(
@@ -255,18 +293,42 @@ export function CommandPalette() {
             placeholder="Type a command or jump to a note…"
             className="flex-1 bg-transparent text-base sm:text-sm font-medium text-[var(--ink,#191712)] placeholder:text-[var(--muted,#5f594c)] outline-none dark:text-[#f4f0e6]"
           />
-          <kbd className="rounded border border-[var(--line,rgba(25,23,18,0.15))] bg-[var(--surface-2,#f1ecdf)] px-1.5 py-0.5 font-mono text-[10px] text-[var(--muted,#5f594c)] dark:border-white/10 dark:bg-white/5 dark:text-neutral-400">
+          <button
+            type="button"
+            onClick={() => setCommandPaletteOpen(false)}
+            aria-label="Close command palette"
+            className="hit-target rounded border border-[var(--line,rgba(25,23,18,0.15))] bg-[var(--surface-2,#f1ecdf)] px-1.5 py-0.5 font-mono text-[10px] text-[var(--muted,#5f594c)] hover:text-[var(--ink,#191712)] dark:border-white/10 dark:bg-white/5 dark:text-neutral-400 dark:hover:text-white"
+          >
             Esc
-          </kbd>
+          </button>
         </div>
 
         {/* Results List */}
         <div className="max-h-[360px] overflow-y-auto p-2">
           {combinedItems.length === 0 ? (
             <div className="p-8 text-center text-xs [text-wrap:pretty] text-[var(--muted,#5f594c)] dark:text-neutral-400">
-              {search.trim()
-                ? `No results for "${search.trim()}". Check spelling or clear search.`
-                : "No notes or commands available."}
+              {search.trim() ? (
+                <div className="flex flex-col items-center gap-3">
+                  <p>
+                    No results for &ldquo;{search.trim()}&rdquo;. Check spelling or create a new note.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const title = search.trim();
+                      audioHaptics.trigger("tap");
+                      const created = createNote();
+                      setTimeout(() => updateNoteTitle(created.id, title), 0);
+                      setCommandPaletteOpen(false);
+                    }}
+                    className="inline-flex items-center gap-1.5 rounded-[8px] bg-[var(--accent,#b8452c)] px-3 py-1.5 text-xs font-semibold text-[var(--accent-fg,#ffffff)] shadow-xs transition hover:opacity-90 active:scale-95"
+                  >
+                    <span>Create note &ldquo;{search.trim()}&rdquo;</span>
+                  </button>
+                </div>
+              ) : (
+                "No notes or commands available."
+              )}
             </div>
           ) : (
             <div className="space-y-0.5">
@@ -275,6 +337,9 @@ export function CommandPalette() {
                 return (
                   <button
                     key={`${item.type}-${item.id}`}
+                    ref={(el) => {
+                      itemRefs.current[idx] = el;
+                    }}
                     type="button"
                     onClick={() => {
                       audioHaptics.trigger("tap");

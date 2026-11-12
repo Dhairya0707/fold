@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { HamburgerMenu } from "@/components/wensity/animated-hamburger-menu";
@@ -20,14 +20,24 @@ export function IslandNavbar() {
   const [theme, toggleTheme] = useTheme();
   const [mobileOpen, setMobileOpen] = useState(false);
   const pathname = usePathname();
+  const navContainerRef = useRef<HTMLDivElement>(null);
 
-  // Close the mobile menu with Escape, and whenever the viewport grows back
-  // to the desktop breakpoint where the inline links are visible again.
+  // Close the mobile menu with Escape, outside pointer-down, and whenever
+  // the viewport grows back to the desktop breakpoint where inline links show.
   useEffect(() => {
     if (!mobileOpen) return;
 
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") setMobileOpen(false);
+    };
+
+    const onPointerDown = (event: PointerEvent) => {
+      if (
+        navContainerRef.current &&
+        !navContainerRef.current.contains(event.target as Node)
+      ) {
+        setMobileOpen(false);
+      }
     };
 
     const desktop = window.matchMedia("(min-width: 1024px)");
@@ -36,16 +46,18 @@ export function IslandNavbar() {
     };
 
     window.addEventListener("keydown", onKeyDown);
+    window.addEventListener("pointerdown", onPointerDown);
     desktop.addEventListener("change", onDesktop);
     return () => {
       window.removeEventListener("keydown", onKeyDown);
+      window.removeEventListener("pointerdown", onPointerDown);
       desktop.removeEventListener("change", onDesktop);
     };
   }, [mobileOpen]);
 
   return (
     <header className="island-nav-wrapper">
-      <div className="island-nav-shell">
+      <div className="island-nav-shell" ref={navContainerRef}>
         <div className="island-nav-outer">
           <nav className="island-nav-inner" aria-label="Main Navigation">
             <div className="specular-line" aria-hidden="true" />

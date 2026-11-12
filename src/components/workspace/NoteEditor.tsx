@@ -14,6 +14,7 @@ import { BubbleFormattingMenu } from "./BubbleFormattingMenu";
 import { FormattingFloatingDock, FormattingToolbarPill } from "./FormattingToolbarPill";
 import { FormattingToolsToggle } from "./FormattingToolsToggle";
 import { audioHaptics } from "@/lib/audio-haptics";
+import { sanitizeUrl } from "@/lib/storage/markdown";
 
 function calculateStats(text: string) {
   const plain = text.trim();
@@ -46,13 +47,13 @@ export function NoteEditor({ isEmbedded = false }: { isEmbedded?: boolean }) {
     downloadCurrentNote,
     copyCurrentNote,
     toggleZenMode,
-    showToast,
   } = useWorkspace();
 
   const [showLinkModal, setShowLinkModal] = useState(false);
   const [showMoreMenu, setShowMoreMenu] = useState(false);
   const [showToolbar, setShowToolbar] = useState(true);
   const [linkUrl, setLinkUrl] = useState("");
+  const [linkError, setLinkError] = useState<string | null>(null);
   const [hoveredLink, setHoveredLink] = useState<{
     href: string;
     text: string;
@@ -72,6 +73,7 @@ export function NoteEditor({ isEmbedded = false }: { isEmbedded?: boolean }) {
   const moreMenuListRef = useRef<HTMLDivElement>(null);
   const moreButtonRef = useRef<HTMLButtonElement>(null);
   const linkModalRef = useRef<HTMLDivElement>(null);
+  const linkInputRef = useRef<HTMLInputElement>(null);
   const titleInputRef = useRef<HTMLTextAreaElement>(null);
   const isUpdatingFromContext = useRef(false);
   const previousNoteId = useRef<string | null>(selectedId);
@@ -109,8 +111,10 @@ export function NoteEditor({ isEmbedded = false }: { isEmbedded?: boolean }) {
         link: {
           openOnClick: false,
           autolink: true,
+          isAllowedUri: (url: string) => sanitizeUrl(url) !== null,
           HTMLAttributes: {
             class: "editor-link",
+            rel: "noopener noreferrer nofollow",
           },
         },
       }),
@@ -144,8 +148,8 @@ export function NoteEditor({ isEmbedded = false }: { isEmbedded?: boolean }) {
         const target = event.target as HTMLElement | null;
         const link = target?.closest("a");
         if (!link) return false;
-        const href = link.getAttribute("href");
-        if (!href) return false;
+        const safeHref = sanitizeUrl(link.getAttribute("href"));
+        if (!safeHref) return false;
 
         const currentNote = selectedNoteRef.current;
         // If note is locked or Cmd/Ctrl key is held, open link directly in a new tab!
@@ -153,7 +157,7 @@ export function NoteEditor({ isEmbedded = false }: { isEmbedded?: boolean }) {
           event.preventDefault();
           event.stopPropagation();
           audioHaptics.trigger("tap");
-          window.open(href, "_blank", "noopener,noreferrer");
+          window.open(safeHref, "_blank", "noopener,noreferrer");
           return true;
         }
         return false;
@@ -192,12 +196,14 @@ export function NoteEditor({ isEmbedded = false }: { isEmbedded?: boolean }) {
     if (!editor) return;
     const previousUrl = editor.getAttributes("link").href;
     setLinkUrl(previousUrl || "");
+    setLinkError(null);
     setShowLinkModal(true);
   }, [editor]);
 
   const closeLinkModal = useCallback(() => {
     setShowLinkModal(false);
     setLinkUrl("");
+    setLinkError(null);
     requestAnimationFrame(() => editor?.commands.focus());
   }, [editor]);
 
@@ -210,30 +216,29 @@ export function NoteEditor({ isEmbedded = false }: { isEmbedded?: boolean }) {
       return;
     }
     const schemeMatch = finalUrl.match(/^([a-zA-Z][a-zA-Z\d+.-]*):/);
-    if (schemeMatch) {
-      const protocol = schemeMatch[1].toLowerCase();
-      if (protocol !== "http" && protocol !== "https" && protocol !== "mailto") {
-        showToast("Only http, https, and mailto links are supported");
-        return;
-      }
-    } else {
+    if (!schemeMatch && !finalUrl.startsWith("/")) {
       finalUrl = `https://${finalUrl}`;
+    }
+    const safeUrl = sanitizeUrl(finalUrl);
+    if (!safeUrl) {
+      setLinkError("Only http, https, mailto, or relative links are supported.");
+      return;
     }
     // If nothing is selected, insert the URL as linked text so ⌘K is useful
     // even from a bare caret instead of silently doing nothing.
     if (editor.state.selection.empty) {
-      const label = finalUrl.replace(/^https?:\/\//i, "").replace(/\/$/, "");
+      const label = safeUrl.replace(/^https?:\/\//i, "").replace(/\/$/, "");
       editor
         .chain()
         .focus()
         .insertContent({
           type: "text",
           text: label,
-          marks: [{ type: "link", attrs: { href: finalUrl } }],
+          marks: [{ type: "link", attrs: { href: safeUrl } }],
         })
         .run();
     } else {
-      editor.chain().focus().extendMarkRange("link").setLink({ href: finalUrl }).run();
+      editor.chain().focus().extendMarkRange("link").setLink({ href: safeUrl }).run();
     }
     closeLinkModal();
   };
@@ -356,17 +361,66 @@ export function NoteEditor({ isEmbedded = false }: { isEmbedded?: boolean }) {
     };
   }, [showMoreMenu]);
 
-  // Close the link popover on outside click / Escape.
+  // Close the link popover on outside click / Escape and trap Tab focus inside.
   useEffect(() => {
     if (!showLinkModal) return;
+
+    requestAnimationFrame(() => {
+      linkInputRef.current?.focus();
+    });
+
     const onPointerDown = (event: PointerEvent) => {
       if (!linkModalRef.current?.contains(event.target as Node)) {
-        setShowLinkModal(false);
+        closeLinkModal();
+      }
+    };
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        closeLinkModal();
+        return;
+      }
+      if (event.key !== "Tab" || !linkModalRef.current) return;
+      const focusable = Array.from(
+        linkModalRef.current.querySelectorAll<HTMLElement>(
+          'input:not([disabled]), button:not([disabled]), [href], [tabindex]:not([tabindex="-1"])'
+        )
+      );
+      if (focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      const active = document.activeElement as HTMLElement | null;
+
+      if (event.shiftKey) {
+        if (!active || active === first || !linkModalRef.current.contains(active)) {
+          event.preventDefault();
+          last.focus();
+        }
+      } else if (!active || active === last || !linkModalRef.current.contains(active)) {
+        event.preventDefault();
+        first.focus();
       }
     };
     document.addEventListener("pointerdown", onPointerDown);
-    return () => document.removeEventListener("pointerdown", onPointerDown);
-  }, [showLinkModal]);
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("pointerdown", onPointerDown);
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [showLinkModal, closeLinkModal]);
+
+  // Dismiss the floating link action card on Escape.
+  useEffect(() => {
+    if (!hoveredLink) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        setHoveredLink(null);
+      }
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [hoveredLink]);
 
   // Keep the wrapping title height in sync with its content / selected note.
   useEffect(() => {
@@ -394,8 +448,8 @@ export function NoteEditor({ isEmbedded = false }: { isEmbedded?: boolean }) {
         clearTimeout(linkHoverTimeoutRef.current);
         linkHoverTimeoutRef.current = null;
       }
-      const href = link.getAttribute("href") || "";
-      if (!href) return;
+      const safeHref = sanitizeUrl(link.getAttribute("href"));
+      if (!safeHref) return;
       const rect = link.getBoundingClientRect();
       const containerRect = editorContainerRef.current.getBoundingClientRect();
 
@@ -409,12 +463,12 @@ export function NoteEditor({ isEmbedded = false }: { isEmbedded?: boolean }) {
       );
 
       setHoveredLink((prev) => {
-        if (prev?.href === href && Math.abs(prev.top - top) < 4 && Math.abs(prev.left - left) < 4) {
+        if (prev?.href === safeHref && Math.abs(prev.top - top) < 4 && Math.abs(prev.left - left) < 4) {
           return prev;
         }
         return {
-          href,
-          text: link.textContent || href,
+          href: safeHref,
+          text: link.textContent || safeHref,
           top,
           left,
         };
@@ -498,7 +552,7 @@ export function NoteEditor({ isEmbedded = false }: { isEmbedded?: boolean }) {
         <button
           type="button"
           onClick={() => createNote()}
-          className="mt-4 rounded-[8px] bg-[var(--accent,#b8452c)] px-4 py-2 text-xs font-semibold text-white shadow-sm transition hover:opacity-90 active:scale-95"
+          className="mt-4 rounded-[8px] bg-[var(--accent,#b8452c)] px-4 py-2 text-xs font-semibold text-[var(--accent-fg,#ffffff)] shadow-sm transition hover:opacity-90 active:scale-95"
         >
           Create note
         </button>
@@ -519,7 +573,7 @@ export function NoteEditor({ isEmbedded = false }: { isEmbedded?: boolean }) {
           <button
             type="button"
             onClick={() => selectNote(null)}
-            className="flex h-7 w-7 items-center justify-center rounded-md text-[var(--muted,#5f594c)] hover:bg-[var(--hover,rgba(25,23,18,0.06))] hover:text-[var(--ink,#191712)] md:hidden dark:text-neutral-400 dark:hover:text-white"
+            className="hit-target flex h-7 w-7 items-center justify-center rounded-md text-[var(--muted,#5f594c)] hover:bg-[var(--hover,rgba(25,23,18,0.06))] hover:text-[var(--ink,#191712)] md:hidden dark:text-neutral-400 dark:hover:text-white"
             aria-label="Back to notes list"
           >
             <svg width="15" height="15" viewBox="0 0 20 20" fill="none">
@@ -599,7 +653,7 @@ export function NoteEditor({ isEmbedded = false }: { isEmbedded?: boolean }) {
             <button
               type="button"
               onClick={() => toggleStar(selectedNote.id)}
-              className={`flex h-7 w-7 items-center justify-center rounded-md active:scale-90 transition-all duration-150 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+              className={`hit-target flex h-7 w-7 items-center justify-center rounded-md active:scale-90 transition-all duration-150 ease-[cubic-bezier(0.16,1,0.3,1)] ${
                 selectedNote.starred
                   ? "text-[var(--star-gold,#d97706)]"
                   : "text-[var(--muted,#5f594c)] hover:bg-[var(--hover,rgba(25,23,18,0.06))] hover:text-[var(--star-gold,#d97706)] dark:text-neutral-400"
@@ -623,7 +677,7 @@ export function NoteEditor({ isEmbedded = false }: { isEmbedded?: boolean }) {
             <button
               type="button"
               onClick={() => togglePin(selectedNote.id)}
-              className={`flex h-7 w-7 items-center justify-center rounded-md active:scale-90 transition-all duration-150 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+              className={`hit-target flex h-7 w-7 items-center justify-center rounded-md active:scale-90 transition-all duration-150 ease-[cubic-bezier(0.16,1,0.3,1)] ${
                 selectedNote.pinned
                   ? "bg-[var(--accent,#b8452c)]/15 text-[var(--accent,#b8452c)]"
                   : "text-[var(--muted,#5f594c)] hover:bg-[var(--hover,rgba(25,23,18,0.06))] hover:text-[var(--ink,#191712)] dark:text-neutral-400 dark:hover:text-white"
@@ -648,7 +702,7 @@ export function NoteEditor({ isEmbedded = false }: { isEmbedded?: boolean }) {
             <button
               type="button"
               onClick={toggleZenMode}
-              className={`flex h-7 w-7 items-center justify-center rounded-md active:scale-90 transition-all duration-150 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+              className={`hit-target flex h-7 w-7 items-center justify-center rounded-md active:scale-90 transition-all duration-150 ease-[cubic-bezier(0.16,1,0.3,1)] ${
                 zenMode
                   ? "bg-[var(--accent,#b8452c)]/15 text-[var(--accent,#b8452c)] ring-1 ring-[var(--accent,#b8452c)]/30 font-semibold"
                   : "text-[var(--muted,#5f594c)] hover:bg-[var(--hover,rgba(25,23,18,0.06))] hover:text-[var(--ink,#191712)] dark:text-neutral-400 dark:hover:text-white"
@@ -697,7 +751,7 @@ export function NoteEditor({ isEmbedded = false }: { isEmbedded?: boolean }) {
                 ref={moreButtonRef}
                 type="button"
                 onClick={() => setShowMoreMenu((open) => !open)}
-                className={`flex h-7 w-7 items-center justify-center rounded-md transition ${
+                className={`hit-target flex h-7 w-7 items-center justify-center rounded-md transition ${
                   showMoreMenu
                     ? "bg-[var(--hover,rgba(25,23,18,0.08))] text-[var(--ink,#191712)] dark:text-white"
                     : "text-[var(--muted,#5f594c)] hover:bg-[var(--hover,rgba(25,23,18,0.06))] hover:text-[var(--ink,#191712)] dark:text-neutral-400"
@@ -865,6 +919,7 @@ export function NoteEditor({ isEmbedded = false }: { isEmbedded?: boolean }) {
         <div
           ref={linkModalRef}
           role="dialog"
+          aria-modal="true"
           aria-label="Insert link"
           className="absolute top-14 left-1/2 z-40 w-[calc(100%-1.5rem)] max-w-[420px] -translate-x-1/2 rounded-[12px] border border-[var(--border-strong,rgba(25,23,18,0.18))] bg-[var(--surface-card,#fffdf8)] p-2.5 shadow-xl backdrop-blur-md sm:p-3 dark:border-white/15 dark:bg-[#1f201a]"
         >
@@ -876,12 +931,18 @@ export function NoteEditor({ isEmbedded = false }: { isEmbedded?: boolean }) {
               </svg>
             </span>
             <input
+              ref={linkInputRef}
               type="url"
               value={linkUrl}
-              onChange={(e) => setLinkUrl(e.target.value)}
+              onChange={(e) => {
+                setLinkUrl(e.target.value);
+                if (linkError) setLinkError(null);
+              }}
               placeholder="Paste or type a link"
               autoFocus
               aria-label="Link URL"
+              aria-invalid={Boolean(linkError)}
+              aria-describedby={linkError ? "link-url-error" : undefined}
               inputMode="url"
               onKeyDown={(e) => {
                 if (e.key === "Enter") confirmLink();
@@ -893,7 +954,7 @@ export function NoteEditor({ isEmbedded = false }: { isEmbedded?: boolean }) {
               <button
                 type="button"
                 onClick={confirmLink}
-                className="rounded-md bg-[var(--accent,#b8452c)] px-3 py-1.5 text-xs font-semibold text-white hover:opacity-90 active:scale-95 transition"
+                className="rounded-md bg-[var(--accent,#b8452c)] px-3 py-1.5 text-xs font-semibold text-[var(--accent-fg,#ffffff)] hover:opacity-90 active:scale-95 transition"
               >
                 {editor?.isActive("link") ? "Save link" : "Insert link"}
               </button>
@@ -918,6 +979,15 @@ export function NoteEditor({ isEmbedded = false }: { isEmbedded?: boolean }) {
               </button>
             </div>
           </div>
+          {linkError && (
+            <p
+              id="link-url-error"
+              role="alert"
+              className="mt-1.5 text-[11px] font-medium text-[var(--danger,#a53c27)] dark:text-[#ff8a75]"
+            >
+              {linkError}
+            </p>
+          )}
         </div>
       )}
 
@@ -959,9 +1029,13 @@ export function NoteEditor({ isEmbedded = false }: { isEmbedded?: boolean }) {
           </div>
         )}
         {/* Floating Link Action Card */}
-        {hoveredLink && (
+        {hoveredLink && (() => {
+          const safeHoveredHref = sanitizeUrl(hoveredLink.href);
+          if (!safeHoveredHref) return null;
+          return (
           <div
-            role="tooltip"
+            role="region"
+            aria-label="Link actions"
             onMouseEnter={handleCardMouseEnter}
             onMouseLeave={handleCardMouseLeave}
             style={{
@@ -978,13 +1052,13 @@ export function NoteEditor({ isEmbedded = false }: { isEmbedded?: boolean }) {
             </span>
 
             <a
-              href={hoveredLink.href}
+              href={safeHoveredHref}
               target="_blank"
               rel="noopener noreferrer"
               className="max-w-[170px] sm:max-w-[220px] truncate font-mono text-xs text-[var(--accent,#b8452c)] hover:underline dark:text-[#ea8a67]"
-              title={hoveredLink.href}
+              title={safeHoveredHref}
             >
-              {hoveredLink.href.replace(/^https?:\/\//i, "")}
+              {safeHoveredHref.replace(/^https?:\/\//i, "")}
             </a>
 
             <div className="mx-0.5 h-3.5 w-[1px] bg-[var(--line,rgba(25,23,18,0.12))] dark:bg-white/15" />
@@ -993,9 +1067,9 @@ export function NoteEditor({ isEmbedded = false }: { isEmbedded?: boolean }) {
               type="button"
               onClick={() => {
                 audioHaptics.trigger("tap");
-                window.open(hoveredLink.href, "_blank", "noopener,noreferrer");
+                window.open(safeHoveredHref, "_blank", "noopener,noreferrer");
               }}
-              className="flex items-center gap-1 rounded-[5px] bg-[var(--accent,#b8452c)] px-2 py-1 text-[11px] font-semibold text-white shadow-2xs hover:opacity-90 active:scale-95 transition"
+              className="flex items-center gap-1 rounded-[5px] bg-[var(--accent,#b8452c)] px-2 py-1 text-[11px] font-semibold text-[var(--accent-fg,#ffffff)] shadow-2xs hover:opacity-90 active:scale-95 transition"
               title="Open in new browser tab"
             >
               <span>Open</span>
@@ -1008,7 +1082,7 @@ export function NoteEditor({ isEmbedded = false }: { isEmbedded?: boolean }) {
               type="button"
               onClick={async () => {
                 try {
-                  await navigator.clipboard.writeText(hoveredLink.href);
+                  await navigator.clipboard.writeText(safeHoveredHref);
                   audioHaptics.trigger("tap");
                   setLinkCopied(true);
                   setTimeout(() => setLinkCopied(false), 1600);
@@ -1033,7 +1107,8 @@ export function NoteEditor({ isEmbedded = false }: { isEmbedded?: boolean }) {
               <button
                 type="button"
                 onClick={() => {
-                  setLinkUrl(hoveredLink.href);
+                  setLinkUrl(safeHoveredHref);
+                  setLinkError(null);
                   setShowLinkModal(true);
                   setHoveredLink(null);
                 }}
@@ -1056,7 +1131,8 @@ export function NoteEditor({ isEmbedded = false }: { isEmbedded?: boolean }) {
               </svg>
             </button>
           </div>
-        )}
+          );
+        })()}
 
         <div className="mx-auto max-w-[65ch] text-left transition-all duration-300">
           {/* Note Title Input — auto-growing textarea mathematically aligned with body */}

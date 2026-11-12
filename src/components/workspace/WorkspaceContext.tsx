@@ -47,6 +47,7 @@ import {
 } from "@/lib/storage/idb";
 import { getSyncEngine } from "@/lib/storage/sync";
 import {
+  coerceImportedNote,
   processImportFile,
   downloadNoteAsMarkdown,
   copyNoteAsMarkdown,
@@ -133,24 +134,29 @@ export function WorkspaceProvider({
       try {
         const raw = window.localStorage.getItem("fold.notes.v1");
         if (raw) {
-          const parsed = JSON.parse(raw);
+          const parsed: unknown = JSON.parse(raw);
           if (Array.isArray(parsed) && parsed.length > 0) {
-            const seenIds = new Set<string>();
-            const seenTitles = new Set<string>();
-            const result: Note[] = [];
-            const sorted = [...parsed].sort((a: Note, b: Note) => (b.updated || 0) - (a.updated || 0));
-            for (const n of sorted) {
-              const cleanTitle = (n.title || "").trim().toLowerCase();
-              if (seenIds.has(n.id)) continue;
-              if (cleanTitle && seenTitles.has(cleanTitle)) continue;
-              seenIds.add(n.id);
-              if (cleanTitle) seenTitles.add(cleanTitle);
-              result.push({
-                ...n,
-                folder: normalizeNoteFolder(n.folder),
-              });
+            const validNotes = parsed
+              .map(coerceImportedNote)
+              .filter((n): n is Note => n !== null);
+            if (validNotes.length > 0) {
+              const seenIds = new Set<string>();
+              const seenTitles = new Set<string>();
+              const result: Note[] = [];
+              const sorted = [...validNotes].sort((a, b) => (b.updated || 0) - (a.updated || 0));
+              for (const n of sorted) {
+                const cleanTitle = n.title.trim().toLowerCase();
+                if (seenIds.has(n.id)) continue;
+                if (cleanTitle && seenTitles.has(cleanTitle)) continue;
+                seenIds.add(n.id);
+                if (cleanTitle) seenTitles.add(cleanTitle);
+                result.push({
+                  ...n,
+                  folder: normalizeNoteFolder(n.folder),
+                });
+              }
+              return result;
             }
-            return result;
           }
         }
       } catch {}

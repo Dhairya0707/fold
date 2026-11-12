@@ -154,9 +154,9 @@ export function FoldWorkspace() {
     };
   }, [selectedNote]);
 
-  // Filter notes
+  // Filter and sort notes
   const filteredNotes = useMemo(() => {
-    return notes.filter((n) => {
+    const matched = notes.filter((n) => {
       if (folder === "starred" && !n.starred) return false;
       if (folder !== "all" && folder !== "starred" && n.folder !== folder) return false;
       if (query.trim()) {
@@ -168,7 +168,15 @@ export function FoldWorkspace() {
       }
       return true;
     });
-  }, [notes, folder, query]);
+
+    if (sort === "oldest") {
+      return [...matched].reverse();
+    }
+    if (sort === "az") {
+      return [...matched].sort((a, b) => a.title.localeCompare(b.title));
+    }
+    return matched;
+  }, [notes, folder, query, sort]);
 
   // Interactive task toggle with sound
   const handleToggleTask = (noteId: string, taskId: string) => {
@@ -215,7 +223,7 @@ export function FoldWorkspace() {
   const btnClass = (active: boolean, disabled: boolean = false) =>
     `hit-target flex h-7 w-7 shrink-0 items-center justify-center rounded-[7px] text-xs transition-all duration-120 ease-[cubic-bezier(0.16,1,0.3,1)] ${
       disabled
-        ? "opacity-30 cursor-not-allowed text-[var(--muted,#5f594c)] dark:text-neutral-500"
+        ? "opacity-30 cursor-not-allowed text-[var(--muted,#5f594c)] dark:text-[#928c7d]"
         : active
         ? "bg-[var(--accent,#b8452c)]/15 text-[var(--accent,#b8452c)] font-semibold shadow-2xs active:scale-90 dark:bg-[var(--accent,#b8452c)]/25 dark:text-[#ff8a65]"
         : "text-[var(--muted,#5f594c)] hover:bg-[var(--hover,rgba(25,23,18,0.06))] hover:text-[var(--ink,#191712)] active:scale-90 dark:text-neutral-400 dark:hover:text-[#f4f0e6]"
@@ -360,16 +368,16 @@ export function FoldWorkspace() {
         {/* 3-Pane Body */}
         <div
           className={`demo-app-body flex overflow-hidden rounded-b-[1.12rem] bg-[var(--surface-card,#fffdf8)] text-left max-sm:flex-col dark:bg-[#161713] ${
-            zenMode ? "h-[calc(100vh-40px)] rounded-none" : "h-[580px] max-sm:h-[560px]"
+            zenMode ? "h-[calc(100vh-40px)] rounded-none" : "h-[580px] max-sm:h-[640px]"
           }`}
         >
           {/* 1. Mini Collapsible Sidebar */}
           {sidebarOpen && (
-            <aside className="relative flex w-[230px] shrink-0 flex-col border-r border-[var(--line,rgba(25,23,18,0.11))] bg-[var(--sidebar,#ece7da)] p-3 text-left transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] overflow-hidden dark:border-white/10 dark:bg-[#161713]">
+            <aside className="relative flex w-[230px] shrink-0 flex-col border-r border-[var(--line,rgba(25,23,18,0.11))] bg-[var(--sidebar,#ece7da)] p-3 text-left transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] overflow-hidden max-sm:w-full max-sm:max-h-[240px] max-sm:border-r-0 max-sm:border-b dark:border-white/10 dark:bg-[#161713]">
               {/* Head */}
               <div className="flex items-center justify-between pb-3 px-1">
                 <div className="flex items-center gap-2">
-                  <span className="flex h-5 w-5 items-center justify-center rounded-[6px] bg-[var(--accent,#b8452c)] text-white text-[11px] font-bold">
+                  <span className="flex h-5 w-5 items-center justify-center rounded-[6px] bg-[var(--accent,#b8452c)] text-[var(--accent-fg,#ffffff)] text-[11px] font-bold">
                     f.
                   </span>
                   <span className="text-[15px] font-bold text-[var(--ink,#191712)] dark:text-[#f4f0e6]">
@@ -482,15 +490,15 @@ export function FoldWorkspace() {
             }`}
           >
             {/* Header */}
-            <div className="flex items-center justify-between border-b border-[var(--line,rgba(25,23,18,0.08))] pb-2.5 max-sm:hidden dark:border-white/5">
-              <div className="flex items-center gap-2">
+            <div className="flex items-center justify-between gap-2 border-b border-[var(--line,rgba(25,23,18,0.08))] pb-2.5 max-sm:pb-2 dark:border-white/5">
+              <div className="flex min-w-0 items-center gap-2">
                 <button
                   type="button"
                   onClick={() => {
                     audioHaptics.trigger("tap");
                     setSidebarOpen((s) => !s);
                   }}
-                  className="flex h-7 w-7 items-center justify-center rounded-md text-[var(--muted,#5f594c)] hover:bg-[var(--hover,rgba(25,23,18,0.06))] hover:text-[var(--ink,#191712)] dark:text-neutral-400 dark:hover:text-white"
+                  className="hit-target flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-[var(--muted,#5f594c)] hover:bg-[var(--hover,rgba(25,23,18,0.06))] hover:text-[var(--ink,#191712)] dark:text-neutral-400 dark:hover:text-white"
                   title="Toggle Sidebar (⌘\)"
                   aria-label="Toggle sidebar"
                 >
@@ -499,17 +507,17 @@ export function FoldWorkspace() {
                     <path d="M7.4 3.8v12.4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
                   </svg>
                 </button>
-                <div>
-                  <h2 className="text-xs font-semibold text-[var(--ink,#191712)] dark:text-[#f4f0e6]">
+                <div className="min-w-0">
+                  <h2 className="truncate text-xs font-semibold text-[var(--ink,#191712)] dark:text-[#f4f0e6]">
                     {folder === "all" ? "All notes" : folder === "starred" ? "Starred" : folder}
                   </h2>
-                  <p className="text-[10px] text-[var(--muted,#5f594c)] dark:text-neutral-400">
+                  <p className="text-[10px] tabular-nums text-[var(--muted,#5f594c)] dark:text-neutral-400">
                     {filteredNotes.length} {filteredNotes.length === 1 ? "note" : "notes"}
                   </p>
                 </div>
               </div>
 
-              <div className="flex items-center gap-1.5">
+              <div className="flex shrink-0 items-center gap-1.5">
                 <select
                   value={sort}
                   onChange={(e) => setSort(e.target.value as "newest" | "oldest" | "az")}
@@ -523,7 +531,7 @@ export function FoldWorkspace() {
                 <button
                   type="button"
                   onClick={handleCreateDemoNote}
-                  className="flex h-6 w-6 items-center justify-center rounded text-[var(--muted,#5f594c)] hover:bg-[var(--hover,rgba(25,23,18,0.06))] hover:text-[var(--accent,#b8452c)] dark:text-neutral-400"
+                  className="hit-target flex h-6 w-6 items-center justify-center rounded text-[var(--muted,#5f594c)] hover:bg-[var(--hover,rgba(25,23,18,0.06))] hover:text-[var(--accent,#b8452c)] dark:text-neutral-400"
                   title="New note"
                   aria-label="New note"
                 >
@@ -535,7 +543,7 @@ export function FoldWorkspace() {
             </div>
 
             {/* Search */}
-            <div className="relative my-2 max-sm:hidden">
+            <div className="relative my-2">
               <label className="relative flex w-full items-center">
                 <svg width="12" height="12" viewBox="0 0 16 16" fill="none" className="pointer-events-none absolute left-2.5 text-[var(--muted,#5f594c)] dark:text-neutral-400">
                   <circle cx="7.1" cy="7.1" r="4.35" stroke="currentColor" strokeWidth="1.4" />
@@ -547,9 +555,9 @@ export function FoldWorkspace() {
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder="Search notes…"
                   aria-label="Search notes"
-                  className="h-7 w-full rounded-md border border-[var(--line,rgba(25,23,18,0.1))] bg-[var(--surface,#fffdf8)] pr-8 pl-8 text-[11px] text-[var(--ink,#191712)] outline-none placeholder:text-[var(--muted,#5f594c)] focus:border-[var(--accent,#b8452c)] dark:border-white/10 dark:bg-[#20211b] dark:text-[#f4f0e6]"
+                  className="h-8 sm:h-7 w-full rounded-md border border-[var(--line,rgba(25,23,18,0.1))] bg-[var(--surface,#fffdf8)] pr-8 pl-8 text-base sm:text-[11px] text-[var(--ink,#191712)] outline-none placeholder:text-[var(--muted,#5f594c)] focus:border-[var(--accent,#b8452c)] dark:border-white/10 dark:bg-[#20211b] dark:text-[#f4f0e6]"
                 />
-                <kbd className="pointer-events-none absolute right-1.5 rounded border border-[var(--line,rgba(25,23,18,0.15))] bg-[var(--surface-2,#f1ecdf)] px-1 font-mono text-[9px] text-[var(--muted,#5f594c)] dark:border-white/10 dark:bg-white/5 dark:text-neutral-400">
+                <kbd className="pointer-events-none absolute right-1.5 hidden sm:inline-block rounded border border-[var(--line,rgba(25,23,18,0.15))] bg-[var(--surface-2,#f1ecdf)] px-1 font-mono text-[9px] text-[var(--muted,#5f594c)] dark:border-white/10 dark:bg-white/5 dark:text-neutral-400">
                   ⌘K
                 </kbd>
               </label>
@@ -758,7 +766,7 @@ export function FoldWorkspace() {
                   value={selectedNote.title}
                   onChange={(e) => handleTitleChange(e.target.value)}
                   placeholder="Note title…"
-                  className="mb-4 block w-full resize-none overflow-hidden p-0 m-0 border-0 outline-none ring-0 shadow-none bg-transparent text-2xl sm:text-3xl font-bold tracking-tight text-left text-[var(--ink,#191712)] placeholder:text-[var(--faint,#595245)]/40 focus:ring-0 focus:outline-none dark:text-[#f4f0e6] dark:placeholder:text-neutral-600 leading-tight"
+                  className="mb-4 block w-full resize-none overflow-hidden p-0 m-0 border-0 outline-none ring-0 shadow-none bg-transparent text-2xl sm:text-3xl font-bold tracking-tight text-left text-[var(--ink,#191712)] placeholder:text-[var(--faint,#595245)]/40 focus:ring-0 focus:outline-none dark:text-[#f4f0e6] dark:placeholder:text-[#928c7d] leading-tight"
                 />
 
                 {/* Content Elements */}
@@ -781,42 +789,47 @@ export function FoldWorkspace() {
                       </h4>
                       <ul className="space-y-2">
                         {selectedNote.tasks.map((task) => (
-                          <li
-                            key={task.id}
-                            onClick={() => handleToggleTask(selectedNote.id, task.id)}
-                            className="group/task flex cursor-pointer items-start gap-3 select-none text-left"
-                          >
-                            <span
-                              className={`mt-0.5 flex h-[17px] w-[17px] shrink-0 items-center justify-center rounded-[5px] border transition-all duration-150 ${
-                                task.checked
-                                  ? "border-[var(--accent,#b8452c)] bg-[var(--accent,#b8452c)] text-white shadow-xs"
-                                  : "border-[var(--line-strong,rgba(25,23,18,0.28))] bg-[var(--surface-card,#fffdf8)] group-hover/task:border-[var(--accent,#b8452c)] dark:border-white/20 dark:bg-[#1a1b16]"
-                              }`}
+                          <li key={task.id}>
+                            <button
+                              type="button"
+                              role="checkbox"
+                              aria-checked={task.checked}
+                              onClick={() => handleToggleTask(selectedNote.id, task.id)}
+                              className="group/task flex w-full cursor-pointer items-start gap-3 rounded-md py-0.5 select-none text-left focus-visible:outline-2 focus-visible:outline-[var(--accent,#b8452c)]"
                             >
-                              {task.checked && (
-                                <svg
-                                  width="10"
-                                  height="10"
-                                  viewBox="0 0 16 16"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  strokeWidth="2.2"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                >
-                                  <path d="M3.5 8.5L6.5 11.5L12.5 4.5" />
-                                </svg>
-                              )}
-                            </span>
-                            <span
-                              className={`text-[14.5px] leading-relaxed transition-colors duration-150 ${
-                                task.checked
-                                  ? "text-[var(--muted,#5f594c)] line-through opacity-65 dark:text-neutral-500"
-                                  : "text-[var(--ink,#191712)] dark:text-[#f4f0e6]"
-                              }`}
-                            >
-                              {task.text}
-                            </span>
+                              <span
+                                aria-hidden="true"
+                                className={`mt-0.5 flex h-[17px] w-[17px] shrink-0 items-center justify-center rounded-[5px] border transition-all duration-150 ${
+                                  task.checked
+                                    ? "border-[var(--accent,#b8452c)] bg-[var(--accent,#b8452c)] text-[var(--accent-fg,#ffffff)] shadow-xs"
+                                    : "border-[var(--line-strong,rgba(25,23,18,0.28))] bg-[var(--surface-card,#fffdf8)] group-hover/task:border-[var(--accent,#b8452c)] dark:border-white/20 dark:bg-[#1a1b16]"
+                                }`}
+                              >
+                                {task.checked && (
+                                  <svg
+                                    width="10"
+                                    height="10"
+                                    viewBox="0 0 16 16"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeWidth="2.2"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                  >
+                                    <path d="M3.5 8.5L6.5 11.5L12.5 4.5" />
+                                  </svg>
+                                )}
+                              </span>
+                              <span
+                                className={`text-[14.5px] leading-relaxed transition-colors duration-150 ${
+                                  task.checked
+                                    ? "text-[var(--muted,#5f594c)] line-through opacity-75 dark:text-[#928c7d]"
+                                    : "text-[var(--ink,#191712)] dark:text-[#f4f0e6]"
+                                }`}
+                              >
+                                {task.text}
+                              </span>
+                            </button>
                           </li>
                         ))}
                       </ul>
@@ -1059,9 +1072,9 @@ export function FoldWorkspace() {
 
             {/* Footer Bar */}
             <footer className="flex min-h-9 shrink-0 flex-wrap items-center justify-between gap-x-3 gap-y-1 border-t border-[var(--line,rgba(25,23,18,0.08))] px-3 py-1.5 text-[11px] text-[var(--muted,#5f594c)] sm:px-4 dark:border-white/5 dark:text-neutral-400">
-              <div className="flex items-center gap-2 font-mono text-[10px]">
+              <div className="flex items-center gap-2 font-mono text-[10px] tabular-nums">
                 <span>{stats.words} words</span>
-                <span className="opacity-40">{stats.readTime}</span>
+                <span className="opacity-70">{stats.readTime}</span>
               </div>
               <div className="flex items-center gap-3">
                 <span className="flex items-center gap-1.5 font-medium max-sm:hidden">

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import { useWorkspace } from "./WorkspaceContext";
@@ -37,12 +37,58 @@ export function Sidebar({ isEmbedded = false }: { isEmbedded?: boolean }) {
     name: string;
     count: number;
   } | null>(null);
+  const deleteModalRef = useRef<HTMLDivElement>(null);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
+  const wasDeleteModalOpenRef = useRef(false);
 
   useEffect(() => {
-    if (!folderPendingDelete) return;
+    if (!folderPendingDelete) {
+      if (wasDeleteModalOpenRef.current) {
+        wasDeleteModalOpenRef.current = false;
+        const prev = previousFocusRef.current;
+        previousFocusRef.current = null;
+        if (prev && prev.isConnected) {
+          requestAnimationFrame(() => prev.focus());
+        }
+      }
+      return;
+    }
+
+    wasDeleteModalOpenRef.current = true;
+    previousFocusRef.current = document.activeElement as HTMLElement | null;
+
+    const getFocusable = () =>
+      Array.from(
+        deleteModalRef.current?.querySelectorAll<HTMLElement>(
+          'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+        ) ?? []
+      );
+
+    requestAnimationFrame(() => {
+      getFocusable()[0]?.focus();
+    });
+
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
+        e.preventDefault();
         setFolderPendingDelete(null);
+        return;
+      }
+      if (e.key !== "Tab") return;
+      const focusable = getFocusable();
+      if (focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      const active = document.activeElement as HTMLElement | null;
+
+      if (e.shiftKey) {
+        if (!active || active === first || !deleteModalRef.current?.contains(active)) {
+          e.preventDefault();
+          last.focus();
+        }
+      } else if (!active || active === last || !deleteModalRef.current?.contains(active)) {
+        e.preventDefault();
+        first.focus();
       }
     };
     window.addEventListener("keydown", onKeyDown);
@@ -126,7 +172,7 @@ export function Sidebar({ isEmbedded = false }: { isEmbedded?: boolean }) {
               className="group flex items-center gap-2 text-inherit no-underline"
               title="Back to Fold home"
             >
-              <span className="flex h-6 w-6 items-center justify-center rounded-[7px] border border-[var(--accent,#b8452c)]/20 bg-[var(--accent,#b8452c)] text-white shadow-xs transition group-hover:scale-105">
+              <span className="flex h-6 w-6 items-center justify-center rounded-[7px] border border-[var(--accent,#b8452c)]/20 bg-[var(--accent,#b8452c)] text-[var(--accent-fg,#ffffff)] shadow-xs transition group-hover:scale-105">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
                   <path
                     d="M5.75 3.25h8l5 5v12.5h-13z"
@@ -495,18 +541,11 @@ export function Sidebar({ isEmbedded = false }: { isEmbedded?: boolean }) {
 
           {/* 4. Bottom Concentric Storage Telemetry Card */}
           <div className="mt-auto pt-3">
-            <div
+            <button
+              type="button"
               onClick={() => setStorageModalOpen(true)}
-              onKeyDown={(e) => {
-                if ((e.key === "Enter" || e.key === " ") && e.target === e.currentTarget) {
-                  e.preventDefault();
-                  setStorageModalOpen(true);
-                }
-              }}
-              role="button"
-              tabIndex={0}
               aria-label="Open storage and backup settings"
-              className="group relative mb-2.5 cursor-pointer rounded-[12px] border border-[var(--line,rgba(25,23,18,0.12))] bg-[var(--surface-2,#f1ecdf)] p-2.5 shadow-2xs transition hover:border-[var(--line-strong,rgba(25,23,18,0.25))] dark:border-white/10 dark:bg-[#1c1d18]"
+              className="group relative mb-2.5 block w-full cursor-pointer rounded-[12px] border border-[var(--line,rgba(25,23,18,0.12))] bg-[var(--surface-2,#f1ecdf)] p-2.5 text-left shadow-2xs transition hover:border-[var(--line-strong,rgba(25,23,18,0.25))] focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[var(--accent,#b8452c)] dark:border-white/10 dark:bg-[#1c1d18]"
             >
               {/* Top Specular catchlight */}
               <div
@@ -526,25 +565,20 @@ export function Sidebar({ isEmbedded = false }: { isEmbedded?: boolean }) {
               {/* Progress meter */}
               <div className="mb-1.5 h-1 w-full overflow-hidden rounded-full bg-[var(--line,rgba(25,23,18,0.1))] dark:bg-white/10">
                 <div
-                  className="h-full rounded-full bg-[var(--accent,#b8452c)] transition-all duration-300"
-                  style={{ width: `${Math.max(2, stats.usagePercent)}%` }}
+                  className="h-full w-full origin-left rounded-full bg-[var(--accent,#b8452c)] transition-transform duration-300"
+                  style={{
+                    transform: `scaleX(${Math.max(0.02, Math.min(1, stats.usagePercent / 100))})`,
+                  }}
                 />
               </div>
 
               <div className="flex items-center justify-between gap-2 text-xs text-[var(--muted,#5f594c)] dark:text-neutral-400">
                 <span className="tabular-nums">{stats.noteCount} {stats.noteCount === 1 ? "note" : "notes"}, {stats.isPersisted ? "safe" : "local"}</span>
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setStorageModalOpen(true);
-                  }}
-                  className="font-medium text-[var(--accent,#b8452c)] group-hover:underline dark:text-[#ff8a75]"
-                >
+                <span className="font-medium text-[var(--accent,#b8452c)] group-hover:underline dark:text-[#ff8a75]">
                   Manage storage ↗
-                </button>
+                </span>
               </div>
-            </div>
+            </button>
 
             {/* 5. Utility Controls */}
             <div className="flex items-center justify-between border-t border-[var(--line,rgba(25,23,18,0.08))] pt-2.5 px-1 dark:border-white/5">
@@ -696,6 +730,7 @@ export function Sidebar({ isEmbedded = false }: { isEmbedded?: boolean }) {
             onClick={() => setFolderPendingDelete(null)}
           >
             <div
+              ref={deleteModalRef}
               className="relative w-full max-w-[400px] overflow-hidden rounded-[18px] border border-[var(--line-strong,rgba(25,23,18,0.2))] bg-[var(--surface,#fffdf8)] p-5 shadow-[0_24px_64px_-16px_rgba(45,36,22,0.35)] dark:border-white/15 dark:bg-[#1a1b16] dark:shadow-[0_24px_64px_-16px_rgba(0,0,0,0.8)]"
               onClick={(e) => e.stopPropagation()}
             >

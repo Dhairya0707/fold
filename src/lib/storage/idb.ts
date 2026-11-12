@@ -1,4 +1,4 @@
-import { Note, StorageStats } from "@/types/note";
+import type { Note, StorageStats } from "@/types/note";
 
 const DB_NAME = "fold_db";
 const DB_VERSION = 2;
@@ -112,6 +112,13 @@ export function getSeedNotes(): Note[] {
   ];
 }
 
+function escapeHtmlText(str: string): string {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
 /**
  * Normalizes legacy HTML check-rows or legacy fields into standard Note structure.
  */
@@ -125,7 +132,7 @@ export function normalizeNote(raw: Partial<Note>): Note {
       /<div[^>]*class=["'][^"']*check-row[^"']*["'][^>]*>\s*<input[^>]*type=["']checkbox["']([^>]*)>\s*(?:<span>|<p>)?([\s\S]*?)(?:<\/span>|<\/p>)?\s*<\/div>/gi,
       (_match, attrs, text) => {
         const isChecked = attrs.includes("checked");
-        const cleanText = text.replace(/<[^>]*>?/gm, "").trim();
+        const cleanText = escapeHtmlText(text.replace(/<\/?[a-zA-Z][^>]*>/gm, "").trim());
         return `<ul data-type="taskList"><li data-type="taskItem" data-checked="${isChecked}"><p>${cleanText || "Task item"}</p></li></ul>`;
       }
     );
@@ -135,7 +142,7 @@ export function normalizeNote(raw: Partial<Note>): Note {
       /<p[^>]*>\s*<input[^>]*type=["']checkbox["']([^>]*)>\s*([\s\S]*?)<\/p>/gi,
       (_match, attrs, text) => {
         const isChecked = attrs.includes("checked");
-        const cleanText = text.replace(/<[^>]*>?/gm, "").trim();
+        const cleanText = escapeHtmlText(text.replace(/<\/?[a-zA-Z][^>]*>/gm, "").trim());
         return `<ul data-type="taskList"><li data-type="taskItem" data-checked="${isChecked}"><p>${cleanText || "Task item"}</p></li></ul>`;
       }
     );
@@ -186,21 +193,35 @@ export function openDatabase(): Promise<IDBDatabase | null> {
       };
 
       request.onsuccess = () => {
-        dbInstance = request.result;
-        // Listen for close/versionchange
-        dbInstance.onversionchange = () => {
-          dbInstance?.close();
-          dbInstance = null;
+        const db = request.result;
+        dbInstance = db;
+        // Listen for close/versionchange and clear cached promise so future opens recover
+        db.onversionchange = () => {
+          db.close();
+          if (dbInstance === db) {
+            dbInstance = null;
+          }
+          dbPromise = null;
         };
-        resolve(dbInstance);
+        db.onclose = () => {
+          if (dbInstance === db) {
+            dbInstance = null;
+          }
+          dbPromise = null;
+        };
+        resolve(db);
       };
 
       request.onerror = (e) => {
         console.warn("IndexedDB failed to open, using memory/localStorage fallback", e);
+        dbInstance = null;
+        dbPromise = null;
         resolve(null);
       };
     } catch (err) {
       console.warn("IndexedDB initialization exception", err);
+      dbInstance = null;
+      dbPromise = null;
       resolve(null);
     }
   });

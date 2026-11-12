@@ -2,6 +2,8 @@ import { ImageResponse } from "next/og";
 import { notFound } from "next/navigation";
 import { formatBlogDate, getAllSlugs, getPostBySlug } from "@/lib/blog";
 
+export const dynamic = "force-static";
+
 export const alt = "Fold Field Notes";
 export const size = {
   width: 1200,
@@ -323,7 +325,7 @@ export default async function Image({
                 <span style={{ color: "rgba(242, 238, 227, 0.25)" }}>·</span>
                 <span style={{ color: "#8b8577" }}>{publishedDate}</span>
                 <span style={{ color: "rgba(242, 238, 227, 0.25)" }}>·</span>
-                <span style={{ color: "#8b8577" }}>foldnotes.app</span>
+                <span style={{ color: "#8b8577" }}>foldnotes.web.app</span>
               </div>
             </div>
           </div>

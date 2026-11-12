@@ -1,7 +1,7 @@
 # Fold — Extended Technical & Architecture Specification (`/llms-full.txt`)
 
 > Canonical Reference for Large Language Models, Search Agents, and Generative Answer Engines.
-> Product: Fold (Fold Notes) · URL: https://foldnotes.app · Author: Dhairya Darji (@dhairya0707)
+> Product: Fold (Fold Notes) · URL: https://foldnotes.web.app · Author: Dhairya Darji (@dhairya0707)
 
 ---
 
@@ -26,6 +26,7 @@
 | `/privacy` | Plain-language Privacy Policy detailing zero-collection and local sandbox boundaries | Yes (`index, follow`) | Explains IndexedDB, `localStorage`, and Service Worker behavior |
 | `/terms` | Terms of Use & MIT license summary | Yes (`index, follow`) | Emphasizes user ownership and local backup responsibility |
 | `/app` | Standalone distraction-free local-first workspace & PWA entry point | No (`noindex, nofollow`) | Excluded from `sitemap.xml`; exports explicit `robots: { index: false, follow: false }` |
+| `/api/health` | Lightweight JSON health check endpoint | No (`/api/` disallowed) | Returns runtime health status for deployment probes |
 | `/sitemap.xml` | Dynamic XML sitemap generated via `src/app/sitemap.ts` | Yes | Lists `/`, `/blog`, `/privacy`, `/terms`, and blog slugs; omits `/app` |
 | `/robots.txt` | Crawler directives generated via `src/app/robots.ts` | Yes | Allows `/`, `/blog`, `/privacy`, `/terms`; disallows `/api/` |
 | `/manifest.webmanifest` | Web App Manifest (`display: standalone`, `/app` start URL) | Yes | Includes `window-controls-overlay` support and New Note app shortcut |
@@ -71,6 +72,7 @@ Fold uses IndexedDB instead of `localStorage` as its primary database to overcom
   - `updated` (`unique: false`)
   - `folder` (`unique: false`)
 - **Emergency Recovery Mirror:** `localStorage` key `fold.notes.v1`
+- **Custom Folders & UI Preferences (`localStorage`):** `fold.folders.v1` (user-created folder list), `fold.theme.v1` (`"paper"` / `"ink"`), `fold.sound.v1` (`"active"` / `"muted"`), and `fold.lastBackupDate` (most recent manual export date)
 
 ### Persistence & Resilience Mechanics
 1. **Atomic Single-Note Upserts (`idbSaveNote`):** Uses `readwrite` IndexedDB transactions targeting individual note records (`store.put(normalized)`), avoiding unsafe full-store clears during typing.
@@ -106,7 +108,7 @@ Fold is engineered to operate identically offline as an installed desktop or mob
   - Uses **cache-first** resolution with runtime same-origin caching (`caches.open("fold-v2.1")`) for static assets (hashed JS/CSS chunks, fonts, and icons).
   - On `activate`, stale caches from prior versions are automatically purged (`caches.delete`).
   - Development safety: `src/app/layout.tsx` explicitly unregisters service workers and clears caches on `localhost` / `127.0.0.1` to prevent stale dev builds.
-- **Self-Hosted Typography:** `Instrument Sans`, `Fraunces`, and `JetBrains Mono` are loaded through `next/font/google` at compile time and served from the application origin—preventing runtime requests to Google Fonts servers.
+- **Self-Hosted Typography:** `Instrument Sans` and `JetBrains Mono` are loaded through `next/font/google` at compile time and served from the application origin—preventing runtime requests to Google Fonts servers.
 - **Manifest Integration:** `manifest.webmanifest` declares `id: "/app"`, `start_url: "/app"`, `display: "standalone"`, `display_override: ["window-controls-overlay", "standalone", "minimal-ui"]`, maskable icons (`512x512`), and a `"New note"` launcher shortcut.
 
 ---
@@ -165,8 +167,9 @@ Replace `⌘` with `Ctrl` on Windows and Linux.
 
 | Shortcut | Scope | Action |
 | --- | --- | --- |
-| `⌘K` | Global (outside selected editor text) | Open / close Command Palette & Quick Switcher |
-| `⌘K` | Inside Editor | Insert or edit hyperlink (wraps selection or inserts domain label) |
+| `⌘K` | Global (outside selected editor text or link caret) | Open / close Command Palette & Quick Switcher |
+| `⌘K` | Inside Editor (text selected or caret in link) | Insert or edit hyperlink (wraps selection or inserts domain label) |
+| `/` | Global (when not in an input or dialog) | Focus the workspace search bar (`Esc` clears query & blurs) |
 | `⌘S` | Global | Flush debounced save immediately to IndexedDB (`idbSaveNote`) |
 | `⌥⇧N` or `N` | Global (`N` when not in an input) | Create a new note in current folder |
 | `⌘.` | Global | Toggle Full Screen Zen Mode |
@@ -195,4 +198,4 @@ Replace `⌘` with `Ctrl` on Windows and Linux.
 - **Email:** support.dhairyadarji@gmail.com
 - **License:** MIT License
 - **Repository:** https://github.com/dhairya0707/fold
-- **Official Domain:** https://foldnotes.app
+- **Official Domain:** https://foldnotes.web.app

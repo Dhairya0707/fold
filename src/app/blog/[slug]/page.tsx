@@ -23,10 +23,7 @@ import {
 import { SITE_CONFIG } from "@/lib/site";
 import { serializeJsonLd } from "@/lib/seo";
 
-// Note: `dynamicParams` is incompatible with `cacheComponents: true` in Next.js 16;
-// `ensureStatic = "navigation"` ensures static prerendering and waits before streaming
-// so unknown slugs cleanly resolve to `notFound()` with HTTP 404.
-export const ensureStatic = "navigation";
+export const dynamicParams = false;
 
 export async function generateStaticParams() {
   return getAllSlugs().map((slug) => ({ slug }));
@@ -210,12 +207,12 @@ export default async function BlogPostPage({
               <div className="mb-4 flex flex-wrap items-center gap-2.5">
                 <Link
                   href={`/blog?category=${encodeURIComponent(post.category)}`}
-                  className="rounded-[6px] border border-[var(--accent)]/30 bg-[var(--accent-soft)] px-2.5 py-1 font-mono text-[10.5px] font-bold uppercase tracking-[0.08em] text-[var(--accent)] transition-opacity hover:opacity-85"
+                  className="rounded-[6px] border border-[var(--accent)]/30 bg-[var(--accent-soft)] px-2.5 py-1 font-mono text-[10.5px] font-bold uppercase tracking-[0.08em] text-[var(--accent-on-muted,var(--accent))] transition-opacity hover:opacity-85"
                 >
                   {post.category}
                 </Link>
 
-                <span className="inline-flex items-center gap-1.5 rounded-[6px] border border-[var(--border)] bg-[var(--surface-card)] px-2.5 py-1 font-mono text-[11px] text-[var(--muted)]">
+                <span className="inline-flex items-center gap-1.5 rounded-[6px] border border-[var(--border)] bg-[var(--surface-card)] px-2.5 py-1 font-mono text-[11px] tabular-nums text-[var(--muted)]">
                   <Clock className="h-3.5 w-3.5 text-[var(--accent)]" />
                   <span>{post.readingTimeText}</span>
                 </span>
@@ -274,7 +271,7 @@ export default async function BlogPostPage({
                         {post.author.handle}
                       </a>
                       <span aria-hidden="true">·</span>
-                      <span>{post.wordCount.toLocaleString()} words</span>
+                      <span className="tabular-nums">{post.wordCount.toLocaleString()} words</span>
                     </div>
                   </div>
                 </div>
@@ -436,17 +433,17 @@ export default async function BlogPostPage({
                   {relatedPosts.map((related) => (
                     <article
                       key={related.slug}
-                      className="group relative flex flex-col rounded-[18px] border border-[var(--border)] bg-[var(--surface-muted)] p-[3px] shadow-[var(--shadow-card)] transition-all duration-200 hover:-translate-y-0.5 hover:border-[var(--border-strong)] hover:shadow-[var(--shadow-card-hover)]"
+                      className="group relative flex flex-col rounded-[18px] border border-[var(--border)] bg-[var(--surface-muted)] p-[3px] shadow-[var(--shadow-card)] transition-all duration-200 hover:-translate-y-0.5 hover:border-[var(--border-strong)] hover:shadow-[var(--shadow-card-hover)] focus-within:ring-2 focus-within:ring-[var(--accent)] focus-within:ring-offset-2 focus-within:ring-offset-[var(--bg-canvas)]"
                     >
                       <div className="relative flex h-full flex-col justify-between overflow-hidden rounded-[15px] border border-[var(--border)] bg-[var(--double-frame-inner)] p-5 sm:p-6">
                         <div className="specular-line" aria-hidden="true" />
 
                         <div>
                           <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-                            <span className="rounded-[6px] border border-[var(--border)] bg-[var(--surface-muted)] px-2 py-0.5 font-mono text-[10.5px] font-semibold uppercase tracking-[0.07em] text-[var(--accent)]">
+                            <span className="rounded-[6px] border border-[var(--border)] bg-[var(--surface-muted)] px-2 py-0.5 font-mono text-[10.5px] font-semibold uppercase tracking-[0.07em] text-[var(--accent-on-muted,var(--accent))]">
                               {related.category}
                             </span>
-                            <div className="flex items-center gap-2 font-mono text-[11px] text-[var(--muted)]">
+                            <div className="flex items-center gap-2 font-mono text-[11px] tabular-nums text-[var(--muted)]">
                               <span>{related.readingTimeText}</span>
                               <span aria-hidden="true">·</span>
                               <time dateTime={related.publishedAt}>

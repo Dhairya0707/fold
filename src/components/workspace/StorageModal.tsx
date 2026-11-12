@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useWorkspace } from "./WorkspaceContext";
 import { audioHaptics } from "@/lib/audio-haptics";
 
@@ -16,6 +16,64 @@ export function StorageModal() {
   } = useWorkspace();
 
   const [requesting, setRequesting] = useState(false);
+  const modalRef = useRef<HTMLDivElement>(null);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
+  const wasOpenRef = useRef(false);
+
+  useEffect(() => {
+    if (!storageModalOpen) {
+      if (wasOpenRef.current) {
+        wasOpenRef.current = false;
+        const prev = previousFocusRef.current;
+        previousFocusRef.current = null;
+        if (prev && prev.isConnected) {
+          requestAnimationFrame(() => prev.focus());
+        }
+      }
+      return;
+    }
+
+    wasOpenRef.current = true;
+    previousFocusRef.current = document.activeElement as HTMLElement | null;
+
+    const getFocusable = () =>
+      Array.from(
+        modalRef.current?.querySelectorAll<HTMLElement>(
+          'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+        ) ?? []
+      );
+
+    requestAnimationFrame(() => {
+      getFocusable()[0]?.focus();
+    });
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        setStorageModalOpen(false);
+        return;
+      }
+      if (e.key !== "Tab") return;
+      const focusable = getFocusable();
+      if (focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      const active = document.activeElement as HTMLElement | null;
+
+      if (e.shiftKey) {
+        if (!active || active === first || !modalRef.current?.contains(active)) {
+          e.preventDefault();
+          last.focus();
+        }
+      } else if (!active || active === last || !modalRef.current?.contains(active)) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
+
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [storageModalOpen, setStorageModalOpen]);
 
   if (!storageModalOpen) return null;
 
@@ -37,6 +95,7 @@ export function StorageModal() {
       onClick={() => setStorageModalOpen(false)}
     >
       <div
+        ref={modalRef}
         className="relative w-full max-w-[480px] overflow-hidden rounded-[18px] border border-[var(--line-strong,rgba(25,23,18,0.2))] bg-[var(--surface,#fffdf8)] p-6 shadow-[0_24px_64px_-16px_rgba(45,36,22,0.35)] dark:border-white/15 dark:bg-[#1a1b16] dark:shadow-[0_24px_64px_-16px_rgba(0,0,0,0.8)]"
         onClick={(e) => e.stopPropagation()}
       >
@@ -112,7 +171,7 @@ export function StorageModal() {
                   type="button"
                   onClick={handlePersist}
                   disabled={requesting}
-                  className="mt-2 inline-flex items-center gap-1.5 rounded-[6px] border border-[var(--accent,#b8452c)] bg-[var(--accent,#b8452c)]/10 px-2.5 py-1 text-xs font-semibold text-[var(--accent,#b8452c)] transition hover:bg-[var(--accent,#b8452c)] hover:text-white"
+                  className="mt-2 inline-flex items-center gap-1.5 rounded-[6px] border border-[var(--accent,#b8452c)] bg-[var(--accent,#b8452c)]/10 px-2.5 py-1 text-xs font-semibold text-[var(--accent,#b8452c)] transition hover:bg-[var(--accent,#b8452c)] hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {requesting ? "Requesting…" : "Enable persistent storage"}
                 </button>
@@ -126,7 +185,7 @@ export function StorageModal() {
           <p className="text-xs font-medium text-[var(--faint,#595245)] dark:text-neutral-400">
             Export your vault
           </p>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             <button
               type="button"
               onClick={() => {

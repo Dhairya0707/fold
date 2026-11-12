@@ -83,10 +83,6 @@ export const metadata: Metadata = {
   },
 };
 
-// Fold is a client-rendered, local-first PWA with no server data fetching.
-// Instant-navigation validation does not apply to it.
-export const instant = false;
-
 export default function RootLayout({
   children,
 }: {

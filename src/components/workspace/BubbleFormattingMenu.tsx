@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { Editor } from "@tiptap/core";
+import type { Editor } from "@tiptap/react";
 import { audioHaptics } from "@/lib/audio-haptics";
 
 interface BubbleFormattingMenuProps {

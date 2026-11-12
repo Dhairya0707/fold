@@ -135,6 +135,7 @@ export function WhyFoldBento() {
                       key={preset.id}
                       type="button"
                       onClick={() => handleSelectQuery(preset.query)}
+                      aria-pressed={activeQuery === preset.query}
                       className={`bento-search-chip ${activeQuery === preset.query ? "bento-search-chip--active" : ""}`}
                     >
                       {preset.query}

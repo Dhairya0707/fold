@@ -3,6 +3,8 @@ import path from "node:path";
 import type { MetadataRoute } from "next";
 import { SITE_CONFIG } from "@/lib/site";
 
+export const dynamic = "force-static";
+
 const BASE_URL = SITE_CONFIG.url.replace(/\/+$/, "");
 const BLOG_CONTENT_DIR = path.join(process.cwd(), "src", "content", "blog");
 const POST_EXTENSIONS = new Set([".md", ".mdx", ".json"]);
