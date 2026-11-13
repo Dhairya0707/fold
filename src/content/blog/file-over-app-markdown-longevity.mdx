@@ -1,6 +1,6 @@
 ---
-title: "File Over App: Why Plain Markdown Outlives Every Notes Startup"
-description: "Exploring Steph Ango's 'file over app' philosophy and why storing personal writing in open Markdown and YAML frontmatter ensures your notes remain readable decades after any software tool disappears."
+title: "File Over App: Why Plain Markdown Outlives Notes Apps"
+description: "How the file-over-app model keeps personal writing readable for decades using standard Markdown files, YAML frontmatter, and portable ZIP vault exports."
 slug: "file-over-app-markdown-longevity"
 publishedAt: "2026-11-05"
 author:
@@ -17,44 +17,44 @@ tags:
 featured: false
 ---
 
-Every few years, a shiny new note-taking startup promises to organize your entire brain forever. Five years later, that startup pivots to enterprise workflows, locks basic features behind a subscription tier, alters its proprietary schema, or quietly shuts down its servers—leaving behind an awkward export button that produces broken HTML or unreadable JSON.
+Every few years, a new note-taking startup promises to organize your entire brain forever. Five years later, that startup pivots toward enterprise teams, moves basic features behind a subscription tier, alters its database schema, or shuts down its servers, leaving an export button that outputs broken HTML or unreadable JSON.
 
-Apps are temporary. Your thinking should not be.
+Apps are temporary. Your thinking should outlast them.
 
-That tension sits at the heart of **"File over app"**, a digital philosophy popularized by [Steph Ango](https://stephango.com/file-over-app), CEO of Obsidian. Its premise is deceptively simple: ==if you want your writing to outlive the software you compose it in, the files must come first==.
+That principle sits at the core of **"File over app"**, a digital philosophy popularized by [Steph Ango](https://stephango.com/file-over-app), CEO of Obsidian. Its premise is direct: ==if you want your writing to outlive the software you compose it in, the files must come first==.
 
 > If you want to be able to read your writing on a computer in the 2060s or 2160s, it helps if your files are simple enough to have been read on a computer in the 1960s.
 
-Plain text is the closest thing computing has to archival cotton paper.
+Plain text is the closest equivalent computing has to archival cotton paper.
 
-## Why Proprietary Vaults Fail the 20-Year Test
+## Why proprietary vaults fail the 20-year test
 
-When notes are trapped inside a remote database or an opaque binary blob, your access depends on a long chain of fragile assumptions:
+Notes trapped inside a remote database or binary blob depend on four fragile conditions holding true for decades: the company must stay solvent, future app versions must preserve old schemas, your login and two-factor device must keep working, and the exporter must preserve structure when you leave.
 
-1. **Vendor Solvency**: The company hosting your notes must remain profitable and operational indefinitely.
-2. **Format Stability**: Future versions of the application must maintain backward compatibility with older schemas.
-3. **Account Access**: You must retain access to the email address, two-factor device, or subscription billing required to unlock your own words.
-4. **Export Integrity**: When you finally decide to migrate away, the exporter must not strip headings, checkboxes, or nested lists.
+Even well-intentioned cloud tools stumble on that final step. Block-based editors serialize paragraphs into deeply nested UUID trees that flatten poorly into plain text, while proprietary rich-text formats require custom parsers just to extract a nested checklist or blockquote.
 
-Even well-intentioned cloud apps routinely stumble on step four. Block-based editors serialize paragraphs into deeply nested UUID trees that flatten poorly into standard text, while proprietary rich-text formats require custom parsers just to extract a bulleted list.
+1. Vendor solvency forces you to bet your personal archive on a startup's business model.
+2. Schema changes break backward compatibility when companies ship new editor versions.
+3. Account lockouts or expired billing cards can cut off access to your own drafts.
+4. Lossy exporters strip headings, checklists, highlights, and folder hierarchy during migration.
 
-## The Anatomy of a Portable Markdown Note
+## The anatomy of a portable Markdown note
 
-Markdown succeeds where proprietary formats fail because it is legible both as **raw plain text** and as **structured markup**. Open a `.md` file in Apple TextEdit, VS Code, Vim, Obsidian, Bear, iA Writer, or a terminal `cat` command forty years from now, and every heading, emphasis mark, and checklist remains immediately clear to human eyes.
+Markdown outlives proprietary formats because every `.md` file is readable both as raw plain text and as structured markup. Open an exported note in TextEdit, VS Code, Vim, Obsidian, Bear, iA Writer, or a terminal `cat` command forty years from now, and every heading, emphasis mark, and checklist stays legible.
 
-When Fold serializes a note for export, it avoids custom JSON wrappers around prose and outputs clean CommonMark / GitHub Flavored Markdown paired with standard YAML frontmatter:
+When Fold serializes a note for export, it avoids wrapping prose in custom JSON schemas and writes CommonMark / GitHub Flavored Markdown paired with standard YAML frontmatter:
 
-```markdown title="studio-craft-notes.md"
+```markdown title="hardware-grade-local-notes.md"
 ---
-title: "Hardware-grade craft notes"
+title: "Hardware-grade local notes"
 date: 2026-11-05
 folder: "Ideas"
-tag: "craft"
+tag: "notes"
 starred: true
 pinned: false
 ---
 
-# Hardware-grade craft notes
+# Hardware-grade local notes
 
 Fold is built around **concentric double-framing**, specular reflections, and pure local persistence.
 
@@ -63,33 +63,33 @@ Fold is built around **concentric double-framing**, specular reflections, and pu
 - [ ] Export complete vault archive as portable Markdown
 ```
 
-Every piece of document metadata—title, creation date, folder hierarchy, tags, and status flags—lives right at the top of the plain-text file in a convention understood across nearly every modern writing ecosystem.
+Every piece of document metadata (title, date, folder, tag, and status flags) lives at the top of the plain-text file in a convention shared across modern writing tools and static site generators.
 
-## Bridging Browser Speed and File Longevity
+## Bridging browser speed and file longevity
 
-There is a natural engineering trade-off in web applications: browsers do not let a static web tab read and write arbitrary folders on your desktop hard drive without repeated permission prompts. Inside the browser sandbox, `IndexedDB` (`fold_db`) provides fast, asynchronous structured storage so searching, filtering, and typing execute in under a millisecond.
+Browsers restrict web tabs from reading and writing arbitrary folders on your desktop hard drive without repeated permission prompts. Fold solves this by running `IndexedDB` (`fold_db`) for sub-millisecond in-browser indexing while treating two-way Markdown and JSON portability as a primary workflow rather than a buried settings link.
 
-To ensure that convenience never becomes a cage, Fold treats **two-way Markdown portability** as a first-class workflow rather than a hidden settings link:
+Every export and import path runs locally inside your browser with zero server involvement:
 
 | Capability | How Fold Implements Portability | Interoperability Target |
 | --- | --- | --- |
-| Single Note Copy | Converts editor state directly to Markdown on clipboard | Paste cleanly into GitHub, Notion, Linear, or email |
-| Individual `.md` Export | Downloads `<sanitized-title>.md` with full formatting | Any plain-text editor, Obsidian, or iA Writer |
-| Foldered `.zip` Vault | Assembles folder subdirectories (`Inbox/`, `Ideas/`, `Work/`, `Journal/`) via client-side `JSZip` | Instant drop-in archive for desktop vaults & Git repos |
-| Lossless `.json` Snapshot | Exports full `Note` schema plus embeds `fold-vault-manifest.json` in ZIP exports | 1-click full fidelity restoration back into Fold |
-| Drag-and-Drop Import | Parses incoming `.md`, `.txt`, and `.json` files back into rich TipTap tasks & headings | Zero-friction migration into Fold |
+| Single Note Copy | Converts editor state directly to Markdown on clipboard | Paste cleanly into GitHub, Linear, or email |
+| Individual `.md` Export | Downloads `<sanitized-title>.md` with YAML frontmatter | Any plain-text editor, Obsidian, or iA Writer |
+| Foldered `.zip` Vault | Assembles folder subdirectories (`Inbox/`, `Ideas/`, `Work/`, `Journal/`) via client-side `JSZip` | Drop-in archive for desktop vaults and Git repos |
+| Lossless `.json` Snapshot | Exports full `Note` schema plus embeds `fold-vault-manifest.json` inside ZIP exports | One-click full-fidelity restoration back into Fold |
+| Drag-and-Drop Import | Parses incoming `.md`, `.txt`, and `.json` files back into TipTap headings and tasks | Direct migration into Fold from existing folders |
 
-## Building a "Long Now" Archive Habit
+## Building a long-term archive habit
 
-Technology changes faster than human memory. Adopting a file-first mindset requires only three lightweight habits:
+Keeping control of your notes over decades takes only a simple export routine outside browser cache. Saving periodic `.zip` Markdown archives or `.json` snapshots to a local drive and opening one file in a plain-text editor each quarter confirms your writing stays independent of any single app.
 
 - [x] Prefer tools that export human-readable `.md` files with open YAML metadata
-- [x] Keep periodic `.zip` vault snapshots outside browser-managed cache (for example, an encrypted drive, local `Documents/` folder, or Time Machine backup)
-- [x] Test restoring or opening an exported note in an unrelated plain-text editor once a quarter
+- [x] Store periodic `.zip` vault snapshots outside browser cache (such as a local `Documents/` folder, an encrypted drive, or Time Machine)
+- [x] Open an exported note in an unrelated plain-text editor once a quarter to confirm readability
 
-When your notes can be opened with zero proprietary runtime—and imported or exported in seconds without asking permission from a server—you stop worrying about whether your favorite app will still exist ten years from now. The files belong to you, and the tool simply earns its place on your screen each day.
+When your notes open with zero proprietary runtime and move in or out of your workspace in seconds, you no longer have to wonder whether your current editor will still exist ten years from now. The files belong to you, and the application earns its place on your screen each day.
 
-## References & Further Reading
+## References and further reading
 
-- Steph Ango (kepano), [File over app](https://stephango.com/file-over-app) — On plain-text durability and digital ownership.
-- Ink & Switch, [Local-First Software: You Own Your Data, in spite of the Cloud](https://www.inkandswitch.com/local-first/) — Particularly *Ideal #5: The Long Now* and *Ideal #7: You retain ultimate ownership and control*.
+- Steph Ango (kepano), [File over app](https://stephango.com/file-over-app), on plain-text durability and digital ownership.
+- Ink & Switch, [Local-First Software: You Own Your Data, in spite of the Cloud](https://www.inkandswitch.com/local-first/), especially Ideal #5 (The Long Now) and Ideal #7 (ultimate ownership and control).

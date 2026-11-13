@@ -8,7 +8,7 @@
 
 <p>
   A quiet, local-first notes workspace and installable Progressive Web App (PWA) for the web.<br />
-  Everything lives exclusively on your device in IndexedDB — zero tracking, zero cookies, zero accounts.
+  Everything stays on your device in IndexedDB, with zero tracking, cookies, or accounts.
 </p>
 
 <p>
@@ -22,33 +22,33 @@
 </p>
 
 <p>
-  <a href="#-features">Features</a> •
-  <a href="#-architecture">Architecture</a> •
-  <a href="#-quickstart">Quickstart</a> •
-  <a href="#%EF%B8%8F-routes--structure">Routes</a> •
-  <a href="#%EF%B8%8F-keyboard-shortcuts">Shortcuts</a> •
-  <a href="#%EF%B8%8F-security--privacy">Security</a> •
-  <a href="#-production-verification">Verification</a>
+  <a href="#features">Features</a> •
+  <a href="#architecture">Architecture</a> •
+  <a href="#quickstart">Quickstart</a> •
+  <a href="#routes-and-structure">Routes</a> •
+  <a href="#keyboard-shortcuts">Shortcuts</a> •
+  <a href="#security-and-privacy">Security</a> •
+  <a href="#production-verification">Verification</a>
 </p>
 
 </div>
 
 ---
 
-## ✨ Features
+## Features
 
-| Capability | What It Does |
+| Capability | What it does |
 | --- | --- |
-| **Local-First Engine** | Sub-millisecond commits to IndexedDB (`fold_db` v2) with automatic `localStorage` recovery (`fold.notes.v1`) and durable storage pinning (`navigator.storage.persist()`). |
-| **Real-Time Tab Sync** | Cross-tab `BroadcastChannel` (`fold_sync_v2`) keeps notes, folders, and edits synchronized across open windows with zero network requests. |
-| **TipTap v3 Rich Editor** | Headings, interactive checklists, code blocks, highlights, note locking, pinning, and distraction-free Zen Mode (<kbd>⌘</kbd><kbd>.</kbd>). |
-| **Portable Vault Exports** | Bidirectional CommonMark/GFM import and export — single `.md`, full `.json` workspace backup, or folder-organized `.zip` archive (lazy-loaded `JSZip`). |
-| **Offline-Ready PWA** | Service Worker (`/sw.js`) with network-first document navigation, static asset caching, and self-hosted fonts (`Instrument Sans` & `JetBrains Mono`). |
-| **Paper & Ink Themes** | Warm **Paper** (`#f4f0e6`) and dark **Ink** (`#141511`) stationery themes with View Transitions, WCAG AA contrast, reduced-motion support, and optional Web Audio feedback. |
+| **Local-first engine** | Sub-millisecond commits to IndexedDB (`fold_db` v2) with automatic `localStorage` recovery (`fold.notes.v1`) and durable storage pinning (`navigator.storage.persist()`). |
+| **Real-time tab sync** | Cross-tab `BroadcastChannel` (`fold_sync_v2`) keeps notes, folders, and edits synchronized across open windows with zero network requests. |
+| **TipTap v3 rich editor** | Headings, interactive checklists, code blocks, highlights, note locking, pinning, and distraction-free Zen mode (<kbd>⌘</kbd><kbd>.</kbd>). |
+| **Portable vault exports** | Bidirectional CommonMark and GFM import and export: single `.md` files, full `.json` workspace backups, or folder-organized `.zip` archives (lazy-loaded `JSZip`). |
+| **Offline-ready PWA** | Service Worker (`/sw.js`) with network-first document navigation, static asset caching, and self-hosted fonts (`Instrument Sans` and `JetBrains Mono`). |
+| **Paper and Ink themes** | Warm **Paper** (`#f4f0e6`) and dark **Ink** (`#141511`) stationery themes with View Transitions, WCAG AA contrast, reduced-motion support, and optional Web Audio feedback. |
 
 ---
 
-## 🧱 Architecture
+## Architecture
 
 ```mermaid
 flowchart LR
@@ -59,20 +59,20 @@ flowchart LR
   SW["Service Worker (/sw.js)"] --> Cache[("Offline Static Cache\nfold-v2.1")]
 ```
 
-### Tech Stack
+### Tech stack
 
-| Layer | Technology | Implementation Details |
+| Layer | Technology | Implementation details |
 | --- | --- | --- |
 | **Framework** | Next.js `16.4.5` (App Router, Turbopack) | `output: "export"` pure static build (`out/`) for Firebase Hosting |
-| **UI & Language** | React `19.3`, TypeScript `5`, Tailwind CSS `4` | Strict `tsc --noEmit` + ESLint |
+| **UI and language** | React `19.3`, TypeScript `5`, Tailwind CSS `4` | Strict `tsc --noEmit` and ESLint |
 | **Editor** | TipTap `3.33` | StarterKit, TaskList, TaskItem, Highlight, Placeholder |
-| **Storage & Sync** | IndexedDB + `localStorage` + `BroadcastChannel` | Indexed `notes` store (`updated`, `folder`) + multi-tab IPC |
-| **Typography** | `next/font/google` (self-hosted) | `Instrument Sans` & `JetBrains Mono` (zero external font CDNs) |
+| **Storage and sync** | IndexedDB, `localStorage`, `BroadcastChannel` | Indexed `notes` store (`updated`, `folder`) and multi-tab IPC |
+| **Typography** | `next/font/google` (self-hosted) | `Instrument Sans` and `JetBrains Mono` (zero external font CDNs) |
 | **Testing** | Node.js built-in test runner | `node --test "src/**/*.test.ts"` (zero extra test dependencies) |
 
 ---
 
-## 🚀 Quickstart
+## Quickstart
 
 > **Prerequisites:** Node.js `>= 20` (tested on Node `24`) and `pnpm`.
 
@@ -89,7 +89,7 @@ pnpm dev
 
 Open [http://localhost:3000](http://localhost:3000) for the landing page and interactive preview, or [http://localhost:3000/app](http://localhost:3000/app) for the full workspace.
 
-### Available Scripts
+### Available scripts
 
 | Command | Description |
 | --- | --- |
@@ -102,22 +102,22 @@ Open [http://localhost:3000](http://localhost:3000) for the landing page and int
 
 ---
 
-## 🗺️ Routes & Structure
+## Routes and structure
 
-### Application Routes
+### Application routes
 
 | Route | Mode | Purpose |
 | --- | --- | --- |
 | `/` | Static | Landing page, interactive 3-pane demo, architecture specs, and FAQ |
-| `/app` | Static (Client Shell) | Full distraction-free workspace & PWA `start_url` (`noindex`) |
+| `/app` | Static (Client Shell) | Full distraction-free workspace and PWA `start_url` (`noindex`) |
 | `/blog` | Static | Field Notes essays index |
-| `/blog/[slug]` | SSG / Partial Prerender | MDX articles with TOC, code blocks, and dynamic OG images |
-| `/privacy`, `/terms` | Static | Client storage inventory & MIT usage terms |
+| `/blog/[slug]` | SSG / Partial Prerender | MDX articles with TOC, code blocks, and dynamic OG images (including `/blog/install-fold-as-offline-pwa`) |
+| `/privacy`, `/terms` | Static | Client storage inventory and MIT usage terms |
 | `/api/health` | Dynamic (`GET`) | Liveness probe returning `{ status, timestamp }` (`Cache-Control: no-store`) |
 | `/robots.txt`, `/sitemap.xml` | Static | Search crawler rules and canonical URL index |
 
 <details>
-<summary><strong>📁 Project Structure</strong> (click to expand)</summary>
+<summary><strong>Project structure</strong> (click to expand)</summary>
 
 ```text
 public/
@@ -160,7 +160,7 @@ src/
 
 ---
 
-## ⌨️ Keyboard Shortcuts
+## Keyboard shortcuts
 
 > Replace <kbd>⌘</kbd> with <kbd>Ctrl</kbd> and <kbd>⌥</kbd> with <kbd>Alt</kbd> on Windows and Linux.
 
@@ -179,7 +179,7 @@ src/
 | <kbd>⌘</kbd><kbd>/</kbd> | Global / Editor | Show or hide the floating formatting dock (when a note is active) |
 
 <details>
-<summary><strong>✍️ Rich-Text Editor Shortcuts</strong> (click to expand)</summary>
+<summary><strong>Rich-text editor shortcuts</strong> (click to expand)</summary>
 
 | Shortcut | Scope | Action |
 | --- | --- | --- |
@@ -195,9 +195,9 @@ src/
 
 ---
 
-## ⚙️ Environment Variables
+## Environment variables
 
-All runtime variables are public (`NEXT_PUBLIC_*`) and optional — fallback defaults are defined in [`src/lib/site.ts`](./src/lib/site.ts). See [`.env.example`](./.env.example):
+All runtime variables are public (`NEXT_PUBLIC_*`) and optional. Fallback defaults are defined in [`src/lib/site.ts`](./src/lib/site.ts). See [`.env.example`](./.env.example):
 
 | Variable | Default | Purpose |
 | --- | --- | --- |
@@ -207,17 +207,19 @@ All runtime variables are public (`NEXT_PUBLIC_*`) and optional — fallback def
 
 ---
 
-## 🛡️ Security & Privacy
+## Security and privacy
 
-- **Zero Server Persistence:** Notes never leave the browser. No cookies, telemetry SDKs, or external font/CDN requests are used.
-- **Strict HTTP Headers:** [`next.config.ts`](./next.config.ts) enforces `Content-Security-Policy` (`connect-src 'self'`, `frame-ancestors 'none'`, `object-src 'none'`), `Strict-Transport-Security`, `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Referrer-Policy`, and `Permissions-Policy`.
-- **Sanitized Imports & Links:** HTML/Markdown parsing uses inert `DOMParser` documents, 10 MB import size caps, explicit schema validation, YAML frontmatter escaping, and strict `http:` / `https:` / `mailto:` / single-slash relative URL checks.
+Notes never leave the browser, and Fold uses no cookies, telemetry SDKs, or external font or CDN requests.
+
+In [`next.config.ts`](./next.config.ts), HTTP responses enforce `Content-Security-Policy` (`connect-src 'self'`, `frame-ancestors 'none'`, `object-src 'none'`), `Strict-Transport-Security`, `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Referrer-Policy`, and `Permissions-Policy`.
+
+HTML and Markdown imports parse inside inert `DOMParser` documents with 10 MB import size caps, explicit schema validation, YAML frontmatter escaping, and strict `http:`, `https:`, `mailto:`, or single-slash relative URL checks.
 
 For full security boundaries or reporting issues, see [`SECURITY.md`](./SECURITY.md).
 
 ---
 
-## ✅ Production Verification
+## Production verification
 
 Run the full verification suite before deploying:
 
@@ -232,11 +234,9 @@ After starting the production server (`pnpm start`):
 
 ---
 
-## 🤝 Contributing, Changelog & License
+## Contributing, changelog, and license
 
-- **Contributing:** Read [`CONTRIBUTING.md`](./CONTRIBUTING.md) before opening a pull request.
-- **Changelog:** Track release notes in [`CHANGELOG.md`](./CHANGELOG.md).
-- **License:** Released under the [MIT License](./LICENSE).
+Read [`CONTRIBUTING.md`](./CONTRIBUTING.md) before opening a pull request. Track release notes in [`CHANGELOG.md`](./CHANGELOG.md). Fold is released under the [MIT License](./LICENSE).
 
 <div align="center">
   <br />

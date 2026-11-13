@@ -53,7 +53,7 @@ export function CraftSpecs() {
 
               <div className="craft-card-top">
                 <span className="craft-mini-tag">Stationery specimen</span>
-                <span className="craft-tag-pill">#craft</span>
+                <span className="craft-tag-pill">#stationery</span>
               </div>
 
               {/* Specimen Note View */}
@@ -62,8 +62,8 @@ export function CraftSpecs() {
                   Quiet notes on digital paper.
                 </h3>
                 <p className="specimen-body">
-                  Fold is built with mathematical concentric framing, warm paper contrast, and{" "}
-                  <mark className="search-match">zero-latency persistence</mark>.
+                  Fold uses concentric framing, warm paper contrast, and{" "}
+                  <mark className="search-match">instant local persistence</mark>.
                 </p>
 
                 {/* Interactive Tactile Task Checklist */}

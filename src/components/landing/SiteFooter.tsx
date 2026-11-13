@@ -22,7 +22,7 @@ export function SiteFooter() {
               </Link>
             </div>
             <p className="footer-tagline">
-              A quiet, hardware-grade field workspace for the web. Made for the thoughts you mean
+              A quiet, local-first notes workspace for the web. Made for the thoughts you mean
               to keep.
             </p>
             <div className="footer-engine-status">
@@ -30,7 +30,7 @@ export function SiteFooter() {
               <span>{SITE_CONFIG.engine.name} version {SITE_CONFIG.engine.version}</span>
             </div>
             <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-[var(--muted)]">
-              <span>Crafted by {SITE_CONFIG.author.name}</span>
+              <span>Built by {SITE_CONFIG.author.name}</span>
               <a
                 href={SITE_CONFIG.links.x}
                 target="_blank"
@@ -81,7 +81,7 @@ export function SiteFooter() {
                   onClick={handleNavClick}
                   className="footer-nav-link"
                 >
-                  Craft and specs
+                  Writing and specs
                 </Link>
               </li>
               <li>

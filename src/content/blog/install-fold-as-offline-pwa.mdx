@@ -1,0 +1,114 @@
+---
+title: "How to Install Fold as an Offline PWA on Any Device"
+description: "Step-by-step guide to installing Fold from foldnotes.web.app as a standalone offline PWA on desktop and mobile, plus how cache updates and backups work."
+slug: "install-fold-as-offline-pwa"
+publishedAt: "2026-11-12"
+updatedAt: "2026-11-12"
+author:
+  name: "Dhairya Darji"
+  handle: "@dhairya0707"
+  x: "https://x.com/dhairya0707"
+  avatar: "/avatar.jpg"
+category: "Guide"
+tags:
+  - pwa
+  - offline
+  - installation
+  - indexeddb
+featured: false
+---
+
+Installing Fold as a Progressive Web App (PWA) turns the web workspace into a standalone desktop or mobile application. Configured via `manifest.webmanifest` with `start_url: "/app"` and `display: "standalone"`, Fold opens in its own dedicated window without browser tabs or address bars, caches core routes through Service Worker `fold-v2.1` for offline launches, and writes every note directly to local `IndexedDB` (`fold_db` v2).
+
+## What installing Fold as a PWA gives you
+
+Running Fold as an installed Progressive Web App gives you a dedicated application window without browser toolbars, instant offline launches from `/app` via Service Worker `fold-v2.1`, and stronger protection against automatic browser site-data cleanup while keeping every note stored locally in `IndexedDB` (`fold_db` v2).
+
+Because Fold serves a static export and registers `/sw.js` in production (`https://foldnotes.web.app`), installation takes less than ten seconds and requires no app store account or installer binary. Once added, Fold appears in your macOS Dock, Windows Start Menu, Linux app launcher, iOS Home Screen, or Android app drawer with its own icon and Paper/Ink window styling.
+
+- [x] Launches directly into `/app` inside a distraction-free standalone window
+- [x] Opens offline on flights, trains, and disconnected machines via cache `fold-v2.1`
+- [x] Improves eligibility for durable `navigator.storage.persist()` origin protection
+- [x] Shares local `fold_db` data and `BroadcastChannel` (`fold_sync_v2`) updates with same-origin browser tabs
+
+## Browser and OS support matrix
+
+Fold supports standalone PWA installation across modern Chromium and WebKit browsers on desktop and mobile. While every listed browser stores notes locally in `IndexedDB` (`fold_db` v2), each platform uses a slightly different menu action to add the app to your system.
+
+| Browser and OS | Install Trigger | Window Behavior | Offline and Persistence Notes |
+| --- | --- | --- | --- |
+| Chrome / Edge (Windows, macOS, Linux) | Install icon in address bar or browser menu | Standalone window (`window-controls-overlay` / `standalone`) | Full `sw.js` offline support and automatic `persist()` eligibility |
+| Safari (macOS Sonoma and later) | `File` > `Add to Dock...` | Native macOS Dock app with isolated window | Full offline launch; protects origin data from 7-day Safari cleanup |
+| Safari (iPhone / iPad on iOS and iPadOS) | `Share` button > `Add to Home Screen` | Full-screen standalone app launched from Home Screen | Essential on iOS to bypass Safari's 7-day inactive script storage cap |
+| Chrome (Android) | Three-dot menu > `Add to Home screen` / `Install app` | Full-screen WebAPK / standalone Android app | Appears in Android app drawer with offline `fold-v2.1` caching |
+
+## Step-by-step installation on desktop
+
+Desktop installation gives Fold its own application shortcut, taskbar or Dock icon, and standalone window without competing browser tabs. Open `https://foldnotes.web.app/app` in Chrome, Microsoft Edge, or macOS Safari and follow the three steps for your desktop browser below to pin it locally.
+
+### Chrome or Microsoft Edge (macOS, Windows, Linux)
+
+1. Open `https://foldnotes.web.app/app` in Chrome or Edge and wait a moment for the page to finish loading.
+2. Look at the right side of the address bar for the **Install Fold** icon (a monitor or plus badge), or open the three-dot browser menu and choose **Cast, save, and share** > **Install page as app...** (in Edge: **Apps** > **Install this site as an app**).
+3. Confirm the **Install** prompt. Fold opens immediately in a standalone window with its own shortcut in Spotlight, the macOS Dock, or the Windows Start Menu.
+
+### Safari on macOS (Sonoma and newer)
+
+1. Open `https://foldnotes.web.app/app` in Safari on macOS Sonoma (macOS 14) or later.
+2. From the top macOS menu bar, click **File** > **Add to Dock...** (or click the **Share** button in the Safari toolbar and select **Add to Dock**).
+3. Keep the name as **Fold** and click **Add**. Fold is now saved as a standalone macOS Dock application that launches straight into `/app`.
+
+## Step-by-step installation on mobile
+
+Installing Fold on iOS, iPadOS, or Android puts the editor one tap away from your Home Screen and protects local notes on Apple devices from Safari's 7-day inactivity eviction rule. Visit `https://foldnotes.web.app/app` on your phone or tablet to set it up.
+
+### iPhone and iPad (Safari on iOS and iPadOS)
+
+1. Open `https://foldnotes.web.app/app` in Safari (note that Apple requires Safari for reliable Home Screen PWA installation on many iOS releases).
+2. Tap the **Share** icon (the square with an upward arrow) in Safari's toolbar.
+3. Scroll down the share sheet and tap **Add to Home Screen**, then tap **Add** in the top-right corner.
+4. Launch Fold from the new icon on your Home Screen so it runs in standalone mode with dedicated local storage.
+
+### Android (Chrome)
+
+1. Open `https://foldnotes.web.app/app` in Chrome on Android.
+2. Tap the three-dot menu in the top-right corner and select **Install app** (or **Add to Home screen**).
+3. Tap **Install** when prompted. Fold appears in your app drawer and Home Screen as a standalone app.
+
+## How offline caching, updates, and storage durability work
+
+Fold separates application caching from note storage so interface updates never touch your writing. Static assets and routes are handled by Service Worker `public/sw.js` (`fold-v2.1`), while every note lives inside `IndexedDB` (`fold_db` v2) and can be backed up at any time.
+
+### Offline caching and automatic updates (`fold-v2.1`)
+
+When you visit `https://foldnotes.web.app` in production, Fold registers `/sw.js` and pre-caches core shell routes (`/`, `/app`, `/manifest.webmanifest`, `/icon.svg`, `/apple-touch-icon.png`, `/icon-192.png`, and `/icon-512.png`) under cache `fold-v2.1`. (On `localhost` and `127.0.0.1`, Fold unregisters Service Workers and clears caches automatically so local development builds never serve stale files.)
+
+- **Document navigations and HTML/RSC routes** use a **network-first** strategy: when online, Fold fetches fresh HTML so deployments update immediately without referencing retired asset hashes; when offline, it falls back to the cached page or `/app`.
+- **Static hashed assets** (`/_next/static/` chunks, icons, and `woff2` fonts) use a **cache-first** strategy so repeat launches open instantaneously with zero network delay.
+- **Cache cleanup** runs automatically during Service Worker `activate`, deleting older cache versions while leaving `IndexedDB` untouched.
+
+### Storage durability and local vault backups
+
+Because Service Worker caches only hold application code, your notes stay inside `IndexedDB` (`fold_db` v2) with a lightweight fallback mirror in `localStorage` (`fold.notes.v1`). To keep the browser from reclaiming storage during low disk space, open the **Storage and data trust** modal from the bottom-left **Manage storage** card in the sidebar (or press `⌘K` and search for storage):
+
+1. Check the persistence indicator. If it says **Protect notes from browser cleanup**, click **Enable persistent storage** to invoke `navigator.storage.persist()`.
+2. Export a **Markdown (.zip)** vault for human-readable `.md` files organized by folder alongside an embedded `fold-vault-manifest.json` restore file.
+3. Export a **JSON backup** (`fold-notes-backup-YYYY-MM-DD.json`) before wiping a device or switching browsers so you can drag and drop your full library back into Fold anytime.
+
+## Frequently asked questions
+
+### Does uninstalling the Fold PWA delete my notes, or does clearing site data?
+
+Uninstalling the app shortcut and clearing browser site data behave differently depending on your browser. In Chrome or Edge on desktop, clicking uninstall asks whether you also want to clear site data for `foldnotes.web.app`; leave that box unchecked if you only want to remove the window shortcut. Clearing origin site data or cookies and site storage in any browser permanently erases `IndexedDB` (`fold_db`), so always export a `.zip` or `.json` backup first.
+
+### How do app updates arrive after Fold ships a new release?
+
+Updates arrive automatically the next time you open or reload Fold with an internet connection. Because `sw.js` uses a network-first fetch rule for document navigations and calls `skipWaiting()` and `clients.claim()`, the browser picks up the newest `fold-v2.1` shell and updated asset hashes without requiring you to reinstall the PWA.
+
+### How does multi-tab or multi-window sync work when offline?
+
+Fold keeps multiple open windows synchronized locally using the browser's `BroadcastChannel` API on channel `fold_sync_v2`, paired with a `visibilitychange` listener. Whenever you edit, delete, or restore notes in one window, other open Fold tabs or PWA windows on the same origin reconcile with `IndexedDB` in memory with zero network requests.
+
+### Can I still open Fold in a regular browser tab after installing the PWA?
+
+Yes. An installed Chromium PWA window and a normal browser tab pointing to `https://foldnotes.web.app/app` share the same origin storage (`fold_db` v2) and live sync channel (`fold_sync_v2`). Note that Safari on macOS isolates `Add to Dock` web apps into their own WebKit storage container, so keep your writing inside the Dock app (or move vaults via `.zip`/`.json` export) if you switch between Safari tabs and the macOS Dock app.

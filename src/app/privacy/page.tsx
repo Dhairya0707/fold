@@ -17,16 +17,16 @@ import { SiteFooter } from "@/components/landing/SiteFooter";
 import { SITE_CONFIG } from "@/lib/site";
 
 export const metadata: Metadata = {
-  title: "Privacy policy",
+  title: "Privacy policy: local-first IndexedDB storage",
   description:
-    "How Fold stores your notes exclusively on-device in IndexedDB (fold_db v2), syncs across tabs via BroadcastChannel, and guarantees zero cloud servers, telemetry, or cookies.",
+    "How Fold stores notes on-device in IndexedDB (fold_db v2), syncs tabs via BroadcastChannel, and guarantees zero servers, telemetry, or cookies.",
   alternates: {
     canonical: "/privacy",
   },
   openGraph: {
-    title: "Privacy policy: Fold",
+    title: "Privacy policy: local-first IndexedDB storage | Fold",
     description:
-      "100% local-first privacy architecture: IndexedDB fold_db v2, zero data egress, zero telemetry, zero cookies, and complete Markdown/JSON export sovereignty.",
+      "How Fold stores notes on-device in IndexedDB (fold_db v2), syncs tabs via BroadcastChannel, and guarantees zero servers, telemetry, or cookies.",
     url: `${SITE_CONFIG.url}/privacy`,
     siteName: SITE_CONFIG.name,
     type: "website",
@@ -42,9 +42,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Privacy policy: Fold",
+    title: "Privacy policy: local-first IndexedDB storage | Fold",
     description:
-      "100% local-first privacy architecture: IndexedDB fold_db v2, zero data egress, zero telemetry, and zero cookies.",
+      "How Fold stores notes on-device in IndexedDB (fold_db v2), syncs tabs via BroadcastChannel, and guarantees zero servers, telemetry, or cookies.",
     creator: SITE_CONFIG.author.handle,
     images: ["/opengraph-image"],
   },
@@ -160,10 +160,9 @@ export default function PrivacyPage() {
               </h1>
 
               <p className="max-w-[64ch] text-[15px] sm:text-base leading-[1.68] text-[var(--muted)] [text-wrap:pretty]">
-                Fold is engineered so privacy is a technical constraint, not a
-                marketing promise. Every note you compose remains strictly inside
-                your browser&apos;s local storage sandbox, with zero cloud
-                databases, zero analytics, and zero network egress.
+                Fold stores every note strictly inside your browser&apos;s local
+                storage sandbox, with zero cloud databases, zero analytics
+                scripts, and zero network egress.
               </p>
 
               <div className="mt-5 flex flex-wrap items-center gap-2.5 font-mono text-[11px] text-[var(--muted)]">
@@ -456,7 +455,7 @@ export default function PrivacyPage() {
                       </code>
                       , cache{" "}
                       <code className="font-mono text-[12.5px] text-[var(--ink)]">
-                        fold-v2.0
+                        {SITE_CONFIG.engine.cacheName}
                       </code>
                       ) solely to cache static application assets for offline
                       use.

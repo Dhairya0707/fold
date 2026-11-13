@@ -9,29 +9,29 @@
 - **Category:** Productivity / Local-First Note-Taking Web Application & PWA
 - **Canonical URL:** https://foldnotes.web.app
 - **Source Repository:** https://github.com/dhairya0707/fold
-- **Creator:** Dhairya Darji (@dhairya0707 — https://x.com/dhairya0707)
+- **Creator:** Dhairya Darji (@dhairya0707, https://x.com/dhairya0707)
 - **Contact Email:** support.dhairyadarji@gmail.com
 - **Pricing:** 100% free forever, no paywalls or subscriptions (MIT License)
 
 ## Core Philosophy
 
-- **Local-First:** Your browser is the primary database. Notes are written directly to local disk via IndexedDB with sub-millisecond commits—never queued behind cloud sync spinners or remote APIs.
+- **Local-First:** Your browser is the primary database. Notes are written directly to local disk via IndexedDB with sub-millisecond commits, never queued behind cloud sync spinners or remote APIs.
 - **Privacy-First:** Fold collects zero telemetry, bundles zero analytics or error-reporting scripts, sets zero tracking cookies, requires no login or account, and sends zero note data over the network.
 - **Digital Minimalism:** No social feeds, no AI chatbots interrupting your draft, and no nested configuration sprawl. Warm paper (`#f4f0e6`) and dark ink (`#141511`) stationery themes designed for sustained calm focus.
 
 ## Architecture
 
 - **Primary Database:** IndexedDB database `fold_db` (schema version `2`, object store `notes` keyed by `id` with `updated` and `folder` indexes).
-- **Emergency Recovery Mirror & Local Preferences:** Automatic mirror in `localStorage` (`fold.notes.v1`) so edits in flight are never lost on reload or tab close, custom folder list (`fold.folders.v1`), and UI preferences (`fold.theme.v1`, `fold.sound.v1`, `fold.lastBackupDate`), plus seamless migration from legacy `localStorage` notes.
+- **Emergency Recovery Mirror & Local Preferences:** Automatic mirror in `localStorage` (`fold.notes.v1`) so edits in flight are never lost on reload or tab close, custom folder list (`fold.folders.v1`), and UI preferences (`fold.theme.v1`, `fold.sound.v1`, `fold.lastBackupDate`), plus automatic migration from legacy `localStorage` notes.
 - **Cross-Tab Synchronization:** Real-time `BroadcastChannel` (`fold_sync_v2`) broadcasts `note_saved`, `note_deleted`, and `batch_updated` events across open windows/tabs with zero server round-trips.
 - **Zero Network Egress:** Once static assets load, all note creation, editing, full-text search, sorting, locking, pinning, and exporting execute strictly inside the local browser sandbox.
 - **Zero Cookies & Zero Accounts:** No session cookies, no authentication tokens, no third-party embeds, and no user registration.
-- **Self-Hosted Fonts:** `Instrument Sans` and `JetBrains Mono` are bundled and self-hosted via `next/font/google` at build time—zero runtime font requests to external CDNs.
+- **Self-Hosted Fonts:** `Instrument Sans` and `JetBrains Mono` are bundled and self-hosted via `next/font/google` at build time, with zero runtime font requests to external CDNs.
 - **Offline PWA:** Installable Progressive Web App (`/manifest.webmanifest`) backed by a dedicated Service Worker (`/sw.js`, cache `fold-v2.1`, network-first for navigations and cache-first for static assets) so Fold stays current on deploys while working offline on airplanes, subways, and air-gapped devices.
 
 ## Storage, Backup & Portability
 
-- **Markdown Vault (.zip):** One-click ZIP export (`JSZip`) packaging all active notes into folder-organized `.md` files with standard YAML frontmatter (`title`, `date`, `folder`, `tag`, `starred`, `pinned`) plus `fold-vault-manifest.json`—ready for Obsidian, Bear, iA Writer, or any text editor.
+- **Markdown Vault (.zip):** One-click ZIP export (`JSZip`) packaging all active notes into folder-organized `.md` files with standard YAML frontmatter (`title`, `date`, `folder`, `tag`, `starred`, `pinned`) plus `fold-vault-manifest.json`, ready for Obsidian, Bear, iA Writer, or any text editor.
 - **Full JSON Backup:** Download (`fold-notes-backup-YYYY-MM-DD.json`) and 1-click restore of your entire workspace, including metadata and soft-deleted notes.
 - **Single-Note Markdown Export & Copy:** Download any individual note as `<slug>.md` or copy clean CommonMark/GFM Markdown directly to the clipboard.
 - **Import Support:** Drag-and-drop or import `.md`, `.txt`, or `.json` vault backups directly into Fold.
@@ -68,11 +68,12 @@ Note: On Windows/Linux, replace `⌘` with `Ctrl`.
 ## Public URL Directory
 
 - [Home & Interactive Demo](https://foldnotes.web.app/): Landing overview, live interactive three-pane showcase, local-first architecture specs, and FAQ.
-- [Field Notes Blog](https://foldnotes.web.app/blog): Essays and engineering notes on local-first software, IndexedDB, digital minimalism, and craft.
+- [Field Notes Blog](https://foldnotes.web.app/blog): Essays and engineering notes on local-first software, IndexedDB, digital minimalism, and interface design.
   - [The Architecture of Local-First Software](https://foldnotes.web.app/blog/local-first-software-craft)
   - [File Over App: Why Plain Markdown Outlives Every Notes Startup](https://foldnotes.web.app/blog/file-over-app-markdown-longevity)
   - [Browser Storage Limits, IndexedDB & Eviction Defense](https://foldnotes.web.app/blog/private-browser-storage-indexeddb)
   - [Digital Minimalism: Notes Without the Noise](https://foldnotes.web.app/blog/digital-minimalism-notes)
+  - [How to Install Fold as an Offline Notes App (PWA)](https://foldnotes.web.app/blog/install-fold-as-offline-pwa)
 - [Privacy Policy](https://foldnotes.web.app/privacy): Zero-data guarantee explaining local browser storage and absence of tracking.
 - [Terms of Use](https://foldnotes.web.app/terms): Open usage terms, local data ownership, and MIT licensing summary.
 - [Fold Workspace App](https://foldnotes.web.app/app): Standalone distraction-free notes workspace (`noindex` client shell & PWA start URL).

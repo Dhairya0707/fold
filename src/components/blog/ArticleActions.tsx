@@ -36,7 +36,7 @@ export function ArticleActions({ title, slug }: ArticleActionsProps) {
   };
 
   const xShareHref = `https://x.com/intent/tweet?text=${encodeURIComponent(
-    `${title} — via @dhairya0707`
+    `${title} (via @dhairya0707)`
   )}&url=${encodeURIComponent(canonicalUrl)}`;
 
   const linkedInShareHref = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(

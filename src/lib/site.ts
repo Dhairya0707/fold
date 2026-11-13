@@ -1,5 +1,5 @@
 /**
- * Fold — Central Site Configuration & Technical Metadata Constants
+ * Fold: Central Site Configuration & Technical Metadata Constants
  * Single source of truth for SEO, canonical URLs, author info, and legal telemetry.
  */
 
@@ -31,7 +31,7 @@ export const SITE_CONFIG = {
   legalName: "Fold Notes",
   tagline: "Notes without the noise",
   description:
-    "A quiet, private, hardware-grade notes workspace for the web. Capture thoughts instantly, persist them on-device with IndexedDB, and keep your mind calm. Zero tracking, zero cloud, zero accounts.",
+    "A private local-first notes app powered by on-device IndexedDB. Write offline with zero tracking, zero cookies, and one-click Markdown or JSON export.",
   /** Production domain used for canonical links and Open Graph metadata */
   url: resolveSiteUrl(process.env.NEXT_PUBLIC_SITE_URL),
   author: {

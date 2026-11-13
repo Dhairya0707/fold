@@ -19,9 +19,9 @@ const SEARCH_PRESETS: SearchPreset[] = [
     matchSnippet: "Renewal window opens 1 June…",
   },
   {
-    id: "craft",
-    query: "craft",
-    matchTitle: "Hardware-grade craft notes",
+    id: "design",
+    query: "design",
+    matchTitle: "Digital stationery design notes",
     matchSnippet: "Fold is built around concentric framing…",
   },
   {

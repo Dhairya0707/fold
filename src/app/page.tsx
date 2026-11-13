@@ -68,9 +68,9 @@ export default function Home() {
               </h1>
 
               <p className="hero-lede-text">
-                A calm, private place for the thoughts you mean to keep.
-                Fold runs entirely in your browser, saves to this device,
-                and never asks for an account, a cookie, or a subscription.
+                Fold is a private, local-first notes app that runs in your
+                browser. Every note saves directly to IndexedDB on your device
+                and works offline, with no account, no cookies, and no tracking.
               </p>
 
               <div className="hero-cta-cluster">
@@ -116,7 +116,7 @@ export default function Home() {
         {/* Section 3: Bento Grid Layout */}
         <WhyFoldBento />
 
-        {/* Section 4: The Craft & Specifications */}
+        {/* Section 4: Writing & Specifications */}
         <CraftSpecs />
 
         {/* Technical Architecture & Machine-Readable Overview (GEO / AEO) */}

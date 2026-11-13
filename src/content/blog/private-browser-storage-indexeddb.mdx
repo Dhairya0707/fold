@@ -1,6 +1,6 @@
 ---
-title: "Browser Storage Limits, IndexedDB & Eviction Defense"
-description: "Why localStorage breaks modern writing tools, how IndexedDB handles structured rich text at scale, and how Fold uses navigator.storage.persist() with dual-format Markdown ZIP and JSON backups to safeguard your notes."
+title: "Browser Storage Limits, IndexedDB, and Data Durability"
+description: "Why localStorage breaks note libraries, how IndexedDB scales structured text, and how Fold pairs persistent storage with Markdown ZIP and JSON backups."
 slug: "private-browser-storage-indexeddb"
 publishedAt: "2026-04-28"
 updatedAt: "2026-05-06"
@@ -18,25 +18,23 @@ tags:
 featured: false
 ---
 
-Building a genuinely local-first web application forces you to confront an uncomfortable truth about browsers: **client-side storage is powerful, but it is not infallible**.
+Building a genuinely local-first web application forces an honest engineering constraint into the open: **client-side storage is fast, yet never infallible**.
 
-If a user trusts your application with months of notes, journal entries, and project checklists without a cloud database backing it up, storage durability becomes your highest engineering priority. That requires understanding where `localStorage` breaks down, how `IndexedDB` actually allocates space, when browsers evict site data, and why portable exports remain non-negotiable.
+When a user trusts an app with months of notes, journal entries, and checklists without a remote database behind it, storage durability becomes the primary engineering concern. That starts with knowing why `localStorage` fails at scale, how `IndexedDB` allocates disk space, when browsers evict site data, and why portable exports remain essential.
 
-## Why localStorage Fails Real Note Libraries
+## Why localStorage fails real note libraries
 
-Nearly every quick web demo starts with `window.localStorage`. Its API is two synchronous methods (`getItem` and `setItem`), which makes it deceptively convenient for storing preferences like a `"paper"` or `"ink"` theme token.
+Nearly every quick browser prototype begins with `window.localStorage` because `getItem` and `setItem` work synchronously in two lines of code. While that simplicity fits lightweight preferences like a `"paper"` or `"ink"` theme token, it breaks down rapidly as soon as a personal note library grows beyond a handful of entries.
 
-For a real knowledge base, however, `localStorage` introduces three structural failures:
+Three structural limits make `localStorage` unsuitable as a primary document database:
 
-1. **Synchronous Main-Thread Blocking**: Reading or writing `localStorage` halts the JavaScript event loop and blocks rendering frames. Parsing a 2 MB JSON note blob on startup or serializing it during typing causes perceptible typing lag and dropped animations.
-2. **Rigid ~5 MiB Quota Ceiling**: Most browsers cap `localStorage` at roughly 5 megabytes per origin—and because JavaScript strings are UTF-16 encoded, each character consumes two bytes on disk. A few hundred long technical notes quickly trigger `QuotaExceededError`.
-3. **Flat Key-Value Serialization**: Everything must be flattened into a single string. Updating one boolean flag like `pinned: true` on a single note forces you to re-stringify every other note in the library.
+1. **Synchronous main-thread blocking** halts the JavaScript event loop on every read or write, so parsing or stringifying a 2 MB JSON blob during typing causes visible input lag and dropped frames.
+2. **A ~5 MiB origin ceiling** fills up twice as fast as expected because JavaScript strings use UTF-16 encoding (two bytes per character), triggering `QuotaExceededError` after a few hundred technical notes.
+3. **Flat string serialization** forces the app to re-stringify every note in your library just to toggle one boolean flag such as `pinned: true` on a single entry.
 
-## Inside Fold's IndexedDB Engine
+## Inside Fold's IndexedDB engine
 
-`IndexedDB` eliminates every one of those bottlenecks. Instead of a synchronous string dictionary, `IndexedDB` is a transactional, asynchronous object store backed by B-tree indexes inside the browser's native storage layer (typically SQLite or LevelDB under the hood).
-
-Fold initializes database `fold_db` (schema version `2`) with a `notes` object store keyed by `id`, alongside secondary indexes on `updated` and `folder`:
+`IndexedDB` removes those bottlenecks by operating as an asynchronous, transactional object store backed by B-tree indexes inside the browser's native storage layer (usually SQLite or LevelDB). Fold initializes database `fold_db` at schema version `2` with a `notes` store keyed by `id` plus secondary indexes on `updated` and `folder`.
 
 ```ts
 const request = window.indexedDB.open("fold_db", 2);
@@ -51,30 +49,30 @@ request.onupgradeneeded = (event) => {
 };
 ```
 
-### Structured Rich Text Without Blocking Frames
+### Structured rich text without blocking frames
 
-Unlike `localStorage`, `IndexedDB` uses the **Structured Clone Algorithm** off the main UI thread. Multi-megabyte rich-text documents, task checklists, nested folders, and metadata are persisted asynchronously inside ACID-compliant transactions.
+Unlike `localStorage`, `IndexedDB` uses the **Structured Clone Algorithm** off the main UI thread. Multi-megabyte rich-text documents, task checklists, folder metadata, and timestamps commit asynchronously inside ACID transactions:
 
-| Storage Mechanism | Execution Model | Typical Origin Quota | Indexable Records | Best Role in Fold |
+| Storage Mechanism | Execution Model | Typical Origin Quota | Indexable Records | Role in Fold |
 | --- | --- | --- | --- | --- |
-| `localStorage` | Synchronous (blocks UI) | ~5 MiB (UTF-16) | No | Theme, mute preference, emergency fallback mirror |
-| `IndexedDB` | Asynchronous transactions | 10%–60% of free disk | Yes (`keyPath` + indexes) | Primary canonical note engine (`fold_db`) |
-| `Cache Storage` | Asynchronous `Request`/`Response` | Shared origin quota | By URL | Offline PWA shell, fonts, and static routes |
+| `localStorage` | Synchronous (blocks UI) | ~5 MiB (UTF-16) | No | Theme, sound mute state, emergency mirror (`fold.notes.v1`) |
+| `IndexedDB` | Asynchronous transactions | 10% to 60% of free disk | Yes (`keyPath` and indexes) | Primary canonical note engine (`fold_db` v2) |
+| `Cache Storage` | Asynchronous `Request` / `Response` | Shared origin quota | By URL | Offline PWA shell (`fold-v2.1`), fonts, and static routes |
 
-> Fold still keeps a silent emergency mirror in `localStorage` for small vaults and transparently migrates legacy `localStorage` notes into `IndexedDB` on first boot—so zero existing data is stranded across upgrades.
+> Fold maintains an emergency fallback mirror in `localStorage` for small vaults and migrates legacy `localStorage` notes into `IndexedDB` on first boot so older vaults upgrade cleanly.
 
-## Storage Eviction Mechanics & `navigator.storage.persist()`
+## Storage eviction mechanics and navigator.storage.persist()
 
-Even with hundreds of megabytes available in `IndexedDB`, browsers divide origin storage into two durability buckets: **best-effort** and **persistent**.
+Even when `IndexedDB` offers hundreds of megabytes of headroom, browsers split origin storage into **best-effort** and **persistent** buckets. Under default best-effort rules, browsers may reclaim an origin's `IndexedDB` data silently during low disk space or after prolonged inactivity unless persistence is granted.
 
-Under **best-effort** storage (the default for newly visited websites), browsers reserve the right to silently wipe an origin's `IndexedDB` under two conditions:
+Two engine behaviors drive almost all unexpected browser cleanup:
 
-- **Disk Pressure (LRU Eviction)**: Chromium-based browsers and Firefox purge least-recently-used origin buckets when a device's free disk space drops below safety thresholds.
-- **Inactivity Policies**: Safari's Intelligent Tracking Prevention (ITP) caps script-writable storage—including `IndexedDB`—for origins that have not received direct user interaction within a 7-day window unless installed to the Home Screen or granted persistence.
+- **Disk pressure (LRU eviction)** causes Chromium browsers and Firefox to purge least-recently-used origin buckets when a device's free disk space drops below internal safety thresholds.
+- **Inactivity caps** under Safari's Intelligent Tracking Prevention (ITP) expire script-writable storage (including `IndexedDB`) for sites that receive no direct interaction for 7 days, unless installed as a web app or granted persistence.
 
-### Requesting Durable Storage Protection
+### Requesting durable storage protection
 
-To defend against automatic eviction, Fold interacts directly with the standard Web Storage API via `navigator.storage.persist()` and `navigator.storage.estimate()`:
+To defend against automatic eviction, Fold calls the standard Web Storage API via `navigator.storage.persist()` and `navigator.storage.estimate()`:
 
 ```ts
 export async function requestAndMeasureStorage(): Promise<{
@@ -103,52 +101,50 @@ export async function requestAndMeasureStorage(): Promise<{
 }
 ```
 
-When `navigator.storage.persist()` returns `true`, the browser marks the origin as durable and excludes it from routine disk-pressure eviction. Across modern browser engines, quota allocation itself is shared dynamically across `IndexedDB` and the `Cache` API per origin—typically scaling with free disk capacity (such as large shared pools in Chromium and Firefox, and up to ~60% of disk space for browser apps in Safari/WebKit, with `QuotaExceededError` guarding exhaustion). Because browsers may grant or decline `persist()` silently based on site engagement or PWA installation status rather than showing a permission modal, Fold checks persistence on startup and surfaces live status inside the **Storage & Data Trust** dialog.
+When `navigator.storage.persist()` returns `true`, the browser marks the origin durable and excludes it from routine disk-pressure eviction. Quota is shared dynamically across `IndexedDB` and the `Cache` API per origin (scaling with free disk space in Chromium and Firefox, and up to roughly 60% of disk space for browser apps in Safari/WebKit, with `QuotaExceededError` guarding exhaustion). Because browsers evaluate `persist()` silently based on site engagement or PWA installation instead of showing a prompt, Fold checks persistence on startup and shows live status inside the **Storage and data trust** modal.
 
-## Eviction Defense: Dual-Format Vault Exports
+## Eviction defense with dual-format vault exports
 
-==Browser persistence reduces accidental eviction, but it cannot protect against a user clearing all site data, switching laptops, or losing a browser profile.==
+==Browser persistence reduces automatic cleanup, yet it cannot protect notes if someone clears all site data, switches laptops, or deletes a browser profile.== For complete durability, Fold lets you export your entire vault directly from the **Storage and data trust** dialog in two complementary formats at any time.
 
-That is why Fold treats export portability as a core architectural pillar rather than an afterthought. From the Storage & Data Trust modal, you can export your entire library in two complementary formats at any time:
+### 1. Markdown ZIP vaults with YAML frontmatter
 
-### 1. Markdown ZIP Vaults with YAML Frontmatter
+Using client-side `JSZip` assembly with zero server requests, Fold converts every active note from rich editor markup back into clean CommonMark Markdown, preserving headings, blockquotes, links, `<mark>` highlights (`==text==`), and interactive tasks (`- [x]` and `- [ ]`).
 
-Using client-side `JSZip` assembly with zero server involvement, Fold converts every active note from rich editor DOM structure back into clean CommonMark Markdown—preserving headings, blockquotes, links, `<mark>` highlights (`==text==`), and interactive task items (`- [x]` / `- [ ]`).
-
-Each note is placed inside its corresponding folder directory with standard YAML frontmatter:
+Each note lands inside its folder subdirectory with standard YAML frontmatter:
 
 ```yaml
 ---
-title: "Hardware-grade craft notes"
+title: "Hardware-grade local notes"
 date: 2026-05-06
 folder: "Ideas"
-tag: "craft"
+tag: "notes"
 starred: false
 pinned: false
 ---
 
-# Hardware-grade craft notes
+# Hardware-grade local notes
 
 Fold is built around **concentric double-framing**, specular reflections, and pure local persistence.
 ```
 
-Because this follows standard plain-text conventions, your exported `.zip` vault drops cleanly into Obsidian, Bear, iA Writer, Git repositories, or any text editor on Earth. Even better, Fold embeds `fold-vault-manifest.json` right inside the archive so the exact same `.zip` or JSON file gives you a 1-click full restore back into Fold.
+Because this follows plain-text conventions, your exported `.zip` vault opens cleanly in Obsidian, Bear, iA Writer, Git repositories, or any plain-text editor. Fold also embeds `fold-vault-manifest.json` inside the archive so the same `.zip` file restores back into Fold with full structure.
 
-### 2. Full JSON Vault Backups
+### 2. Full JSON vault backups
 
-For lossless archival snapshots—preserving exact timestamps, pinned/starred flags, trash recovery state, and IDs—Fold generates timestamped `fold-notes-backup-YYYY-MM-DD.json` snapshots you can drop into iCloud Drive, an encrypted USB key, or local Time Machine backups.
+For lossless snapshots that preserve exact timestamps, pinned and starred flags, trash state, and internal note IDs, Fold generates timestamped `fold-notes-backup-YYYY-MM-DD.json` files you can store in iCloud Drive, an encrypted drive, or local Time Machine backups.
 
-### Local Data Hygiene Checklist
+### Local data hygiene checklist
 
-- [x] Verify **Browser Persistence Granted** inside Fold's Storage & Data Trust panel
-- [x] Keep Fold installed as an offline PWA on macOS, iOS, or desktop Chrome for stronger origin durability
-- [ ] Export a `.zip` Markdown vault or JSON snapshot after major writing sessions
-- [ ] Store periodic backups outside browser-managed site data
+- [x] Verify **Persistent storage active** inside Fold's Storage and data trust panel
+- [x] Install Fold as an offline PWA on macOS, iOS, or desktop Chrome for stronger origin durability
+- [ ] Export a `.zip` Markdown vault or `.json` snapshot after major writing sessions
+- [ ] Keep periodic backups outside browser-managed site data
 
-When local storage durability is paired with zero-friction, open-standard backups, you get the best of both worlds: effortless browser immediacy with permanent personal ownership.
+Pairing persistent browser storage with open-standard local exports delivers quick on-device responsiveness alongside permanent personal ownership.
 
-## References & Further Reading
+## References and further reading
 
-- MDN Web Docs, [Storage quotas and eviction criteria](https://developer.mozilla.org/en-US/docs/Web/API/Storage_API/Storage_quotas_and_eviction_criteria) — Origin pools, best-effort LRU eviction, and `QuotaExceededError`.
-- MDN Web Docs, [StorageManager.persist()](https://developer.mozilla.org/en-US/docs/Web/API/StorageManager/persist) & [StorageManager.estimate()](https://developer.mozilla.org/en-US/docs/Web/API/StorageManager/estimate).
-- web.dev, [Persistent storage](https://web.dev/articles/persistent-storage) — How browsers evaluate durability requests across desktop and mobile engines.
+- MDN Web Docs, [Storage quotas and eviction criteria](https://developer.mozilla.org/en-US/docs/Web/API/Storage_API/Storage_quotas_and_eviction_criteria), on origin pools, best-effort LRU eviction, and `QuotaExceededError`.
+- MDN Web Docs, [StorageManager.persist()](https://developer.mozilla.org/en-US/docs/Web/API/StorageManager/persist) and [StorageManager.estimate()](https://developer.mozilla.org/en-US/docs/Web/API/StorageManager/estimate).
+- web.dev, [Persistent storage](https://web.dev/articles/persistent-storage), on how browsers evaluate durability requests across desktop and mobile engines.

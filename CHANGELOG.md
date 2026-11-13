@@ -11,6 +11,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Dedicated root (`src/app/global-error.tsx`) and workspace (`src/app/app/error.tsx`) error boundaries.
 - Unit test script (`pnpm test` via `node --test src/**/*.test.ts`) in `package.json`.
 - Project changelog (`CHANGELOG.md`).
+- Field Notes PWA installation guide at `/blog/install-fold-as-offline-pwa`.
 
 ### Changed
 - Synchronized `AGENTS.md`, `README.md`, `SECURITY.md`, `public/llms.txt`, `public/llms-full.txt`, and `/privacy` (`src/app/privacy/page.tsx`) with current commands, routes, shortcuts (`/` search focus, `⌘K` and `⌘/` scopes), self-hosted fonts (`Instrument Sans` and `JetBrains Mono` only), and local storage keys (`fold.folders.v1`).
@@ -20,7 +21,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Added `Strict-Transport-Security` and `Content-Security-Policy` (enforcing `connect-src 'self'` and `frame-ancestors 'none'`) to HTTP response headers in `next.config.ts`.
 - Hardened legacy HTML normalization and JSON/Markdown import validation with `DOMParser` sanitization and stricter schema guards.
 
-## [0.1.0] — Engine 2.0
+## [0.1.0] - Engine 2.0
 
 ### Added
 - Local-first IndexedDB storage engine (`fold_db` v2) with `localStorage` emergency mirror (`fold.notes.v1`), custom folder persistence (`fold.folders.v1`), and `navigator.storage.persist()` eviction protection.

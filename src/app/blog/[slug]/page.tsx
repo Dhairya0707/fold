@@ -387,7 +387,7 @@ export default async function BlogPostPage({
                     </h3>
                     <p className="mt-1.5 text-[12.5px] leading-[1.55] text-[var(--muted)]">
                       Try the local-first IndexedDB workspace right in this
-                      browser—no sign-up required.
+                      browser. No sign-up required.
                     </p>
                     <Link
                       href="/app"
@@ -410,7 +410,7 @@ export default async function BlogPostPage({
                 <div className="mb-6 flex items-end justify-between gap-4">
                   <div>
                     <div className="font-mono text-[10.5px] font-bold uppercase tracking-[0.09em] text-[var(--accent)]">
-                      Continue Reading
+                      Continue reading
                     </div>
                     <h2
                       id="related-heading"

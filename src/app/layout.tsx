@@ -30,7 +30,7 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_CONFIG.url),
   title: {
-    default: "Fold: notes without the noise",
+    default: "Fold: Private local-first notes app without the noise",
     template: "%s | Fold",
   },
   description: SITE_CONFIG.description,
@@ -61,12 +61,12 @@ export const metadata: Metadata = {
     locale: "en_US",
     url: SITE_CONFIG.url,
     siteName: "Fold",
-    title: "Fold: notes without the noise",
+    title: "Fold: Private local-first notes app without the noise",
     description: SITE_CONFIG.description,
   },
   twitter: {
     card: "summary_large_image",
-    title: "Fold: notes without the noise",
+    title: "Fold: Private local-first notes app without the noise",
     description: SITE_CONFIG.description,
     creator: SITE_CONFIG.author.handle,
   },

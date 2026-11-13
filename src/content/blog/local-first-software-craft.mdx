@@ -1,6 +1,6 @@
 ---
-title: "The Architecture of Local-First Software: Notes at the Speed of Thought"
-description: "Why private writing instruments should never wait on cloud round-trips, and how Fold combines in-memory client state, atomic IndexedDB persistence, and BroadcastChannel IPC for sub-millisecond responsiveness."
+title: "Local-First Note Architecture at Sub-Millisecond Speed"
+description: "How Fold avoids cloud round-trips by pairing in-memory React state, single-record IndexedDB writes, and BroadcastChannel IPC across open browser tabs."
 slug: "local-first-software-craft"
 publishedAt: "2026-04-12"
 author:
@@ -17,47 +17,41 @@ tags:
 featured: true
 ---
 
-When you open a physical notebook, the page does not ask you to verify your session token. It does not stall behind a spinning indicator while a distant server checks whether your subscription tier allows offline editing. Pen meets paper in zero milliseconds.
+Open a physical notebook and the page never asks you to verify a session token. It never stalls behind a spinner while a remote server checks whether your subscription allows offline editing. Pen meets paper with zero network latency.
 
-Most modern web software has drifted far away from that immediacy. Even simple scratchpads routinely treat your browser as a disposable thin client—an untrusted terminal that merely renders state owned by someone else's database. Every keystroke becomes a speculative guess waiting for confirmation from a cloud API.
+Most modern web apps moved away from that immediacy, treating the browser as a thin client that waits on someone else's database. Fold works from the opposite rule: ==your device is the primary source of truth, and the network is completely optional==.
 
-Fold was engineered from the opposite premise: ==your device is the primary source of truth, and the network is completely optional==.
+## The latency tax of cloud-first writing
 
-## The Latency Tax of Cloud-First Writing
+Cloud-first note apps route every keystroke through a fragile chain of debounced HTTP requests, load balancers, auth middleware, database writes, and WebSocket acknowledgments. Even on fast Wi-Fi that pipeline adds visible sync jitter, and on a train or poor connection it triggers conflict modals or read-only lockouts.
 
-In a classic cloud-first notes app, creating or editing a note sets off a surprisingly fragile chain reaction:
+When you create or edit a note in a standard cloud-backed workspace, the app has to coordinate four separate hops before your change is truly settled:
 
-1. A client-side editor captures your keystroke and updates optimistic local UI state.
+1. The editor updates optimistic local UI state so typing feels responsive on screen.
 2. A debounced mutation serializes the document delta and opens an authenticated HTTPS request.
-3. A load balancer, auth middleware, and database cluster validate permissions and write the row.
-4. A WebSocket or polling loop pushes an acknowledgment back so the "Saving..." spinner can settle into a checkmark.
-
-When everything goes right on fiber Wi-Fi, you still feel the friction—subtle UI jitter, sync badges flickering in your peripheral vision, and auth timeouts after returning from sleep. When you step onto a train or lose signal in a coffee shop, the illusion shatters: optimistic edits collide, conflict modals interrupt your sentence, or the entire workspace refuses to load.
+3. A load balancer, auth layer, and database cluster validate permissions and commit the row.
+4. A WebSocket or polling loop pushes an acknowledgment back so the saving indicator settles.
 
 > A private writing instrument should operate at the speed of thought, never at the speed of an HTTP round-trip.
 
-Beyond latency, cloud-first defaults introduce an unnecessary privacy compromise. If your unencrypted notes pass through remote servers, you are trusting a third party's infrastructure, retention policies, backup pipelines, and future terms of service with your half-formed drafts.
+Beyond latency, cloud-first defaults force an unnecessary privacy trade-off. If unencrypted drafts pass through remote servers, you are trusting a third party's infrastructure, retention rules, backup pipelines, and future terms of service with your private notes.
 
-## Cloud-First vs. Local-First Architecture
+## Cloud-first versus local-first architecture
 
-Moving state ownership back to the browser changes every boundary in the application.
+Moving canonical state ownership into the browser eliminates network round-trips, authentication gates, and server-side sync bottlenecks. Instead of treating local storage as a temporary cache, Fold makes `IndexedDB` (`fold_db` v2) the primary database and uses browser IPC to coordinate open windows without remote servers.
 
 | Architectural Dimension | Cloud-First Notes App | Fold (Local-First Engine) |
 | --- | --- | --- |
-| Canonical Source of Truth | Remote server database | Browser `IndexedDB` (`fold_db`) |
-| Keystroke Write Latency | 80–400 ms network round-trip | < 1 ms local transaction |
-| Account & Auth Requirement | Mandatory email / OAuth gate | None — open and write immediately |
-| Offline Editing | Degraded cache or read-only lock | Full capability, 0 network requests |
-| Multi-Window Synchronization | Server WebSocket fan-out | Native `BroadcastChannel` IPC |
-| Data Ownership | Hosted behind API exports | Plain Markdown `.zip` + JSON vault |
+| Canonical Source of Truth | Remote server database | Browser `IndexedDB` (`fold_db` v2) |
+| Keystroke Write Latency | 80 to 400 ms network round-trip | Under 1 ms local transaction |
+| Account and Auth Requirement | Mandatory email or OAuth gate | None (open `/app` and write immediately) |
+| Offline Editing | Degraded cache or read-only lock | Full capability with 0 network requests |
+| Multi-Window Synchronization | Server WebSocket fan-out | Native `BroadcastChannel` IPC (`fold_sync_v2`) |
+| Data Ownership | Hosted behind API exports | Plain Markdown `.zip` and JSON vault exports |
 
-## Client-Side State and Atomic Persistence
+## Client-side state and atomic persistence
 
-To feel genuinely instantaneous, Fold separates **interactive memory state** from **durable disk commits** without sacrificing safety.
-
-Inside Fold's workspace context, React holds the active note collection in memory so switching notes, filtering tags, or searching with `⌘K` executes synchronously against plain JavaScript objects—yielding sub-millisecond filtering across hundreds of notes.
-
-When you type inside the rich-text editor, UI updates never wait for disk I/O. Instead, edits schedule a short debounced write to `IndexedDB` using an atomic single-record `put()` operation rather than rewriting the entire note store on every keystroke:
+To keep typing instantaneous without risking data loss, Fold separates fast in-memory React state from durable disk commits. Searching with `⌘K`, filtering folders, and switching notes run synchronously against plain JavaScript objects in memory, while editor changes schedule debounced single-record `put()` transactions in `IndexedDB`.
 
 ```ts
 export async function idbSaveNote(note: Note): Promise<boolean> {
@@ -77,19 +71,17 @@ export async function idbSaveNote(note: Note): Promise<boolean> {
 }
 ```
 
-### Why Single-Record Upserts Matter
+### Why single-record upserts matter
 
-Early browser prototypes often fall into the trap of saving an entire array of notes as one monolithic JSON blob inside `localStorage`. As soon as a notebook grows past a few hundred entries, every single keystroke forces the browser to `JSON.stringify` the whole library and block the main thread while writing megabytes synchronously.
+Early browser prototypes often store an entire library of notes as one monolithic JSON array inside `localStorage`. Once a notebook grows past a few hundred entries, every keystroke forces the browser to `JSON.stringify` the whole collection and block the main thread while writing megabytes synchronously.
 
-By isolating each note as its own record keyed by `id` inside the `notes` object store (with secondary indexes on `updated` and `folder`), Fold only serializes the single note you are actively editing. Everything else in your vault remains untouched on disk.
+By isolating each note as its own record keyed by `id` inside the `notes` object store (with secondary indexes on `updated` and `folder`), Fold serializes only the single note you are actively editing. Every other note on disk remains untouched.
 
-## Multi-Window IPC via BroadcastChannel
+## Multi-window IPC via BroadcastChannel
 
-Local-first does not mean single-tab. Writers routinely keep a reference note open in one browser window while drafting an essay in another. Without a backend server pushing updates over WebSockets, how do two tabs stay synchronized in real time?
+Local-first does not restrict you to a single browser tab. Fold uses the native `BroadcastChannel` API on channel `fold_sync_v2` so open tabs and installed PWA windows on the same origin exchange typed save, delete, and batch-update events directly in browser memory with zero polling or server traffic.
 
-The web platform provides a remarkably clean primitive: the `BroadcastChannel` API. Any windows, tabs, or iframes sharing the same origin can exchange structured messages directly in browser memory—zero servers, zero polling intervals, zero network packets.
-
-Fold opens a dedicated IPC channel named `fold_sync_v2`. Whenever one tab persists a note, deletes an item, or restores a vault batch, it posts a lightweight typed message stamped with a unique `senderId`:
+Whenever one tab commits a note to `IndexedDB`, deletes an item, or restores a vault backup, it broadcasts a lightweight message stamped with a unique `senderId` so the originating tab ignores its own echo:
 
 ```ts
 export type SyncMessage =
@@ -115,30 +107,30 @@ export class SyncEngine {
 }
 ```
 
-### Closing the Visibility Gap
+### Closing the visibility gap
 
-Broadcast messages travel in real time while tabs are awake, but browsers routinely throttle or freeze background tabs to conserve battery. Fold pairs `BroadcastChannel` with a `visibilitychange` listener: the instant you switch back to a dormant window, Fold quietly reconciles its in-memory state with `IndexedDB` so stale drafts never overwrite newer edits made in another window.
+Broadcast messages travel in real time while tabs stay active, but browsers routinely throttle or freeze background tabs to save battery. Fold pairs `BroadcastChannel` with a `visibilitychange` listener: the moment you return to a dormant window, Fold reconciles its in-memory state with `IndexedDB` so stale tabs never overwrite newer edits from another window.
 
-## Designing for Quiet Autonomy & the Seven Ideals
+## Quiet autonomy and the seven local-first ideals
 
-In their landmark 2019 essay [*Local-First Software: You Own Your Data, in spite of the Cloud*](https://www.inkandswitch.com/local-first/), researchers Martin Kleppmann, Adam Wiggins, Peter van Hardenberg, and Mark McGranaghan at **Ink & Switch** articulated seven core ideals for software that keeps your data on your device rather than renting it from a cloud server. Fold maps its single-player web architecture directly to the ideals that matter most for personal writing:
+In their 2019 paper [*Local-First Software: You Own Your Data, in spite of the Cloud*](https://www.inkandswitch.com/local-first/), researchers at Ink & Switch defined seven ideals for software where users keep ownership of their files. Fold applies the five ideals suited to a single-player notes workspace across storage, offline caching, and open exports:
 
-1. **No spinners: your work at your fingertips**: All note selection, searching, and editing operate against in-memory React state backed by sub-millisecond asynchronous `IndexedDB` transactions.
-2. **The network is optional**: Once the PWA shell (`fold-v2.0`) is cached, airplane cabins, subways, and air-gapped laptops behave identically to fiber Wi-Fi.
-3. **The Long Now**: Because notes export cleanly as plain CommonMark `.md` files with YAML frontmatter, your writing remains readable decades after any web application disappears.
-4. **Security and privacy by default**: Because Fold requires zero accounts and maintains zero remote sync servers, your plaintext drafts are never exposed to cloud breaches, server logs, or AI training scrapers.
-5. **You retain ultimate ownership and control**: Every note can be inspected, duplicated, exported in bulk (`.zip` or `.json`), or permanently deleted directly from your browser sandbox.
+1. **No spinners** because note selection, search, and editing run against in-memory React state backed by sub-millisecond `IndexedDB` transactions.
+2. **Optional networking** because once the Service Worker shell (`fold-v2.1`) caches `/app` and static assets, airplane cabins and offline laptops work identically to fiber Wi-Fi.
+3. **Long-term readability** because notes export as plain CommonMark `.md` files with YAML frontmatter that remain readable decades from now.
+4. **Privacy by default** because Fold requires zero accounts and sends zero sync traffic, keeping drafts off remote servers and out of AI training pipelines.
+5. **Full user ownership** because every note can be inspected, duplicated, exported in bulk (`.zip` or `.json`), or permanently deleted inside your browser.
 
-Software architecture always leaks into how a product feels. When an app does not need to phone home, entire categories of visual clutter disappear automatically:
+When an app never needs to phone home, entire layers of visual clutter vanish from the screen:
 
 - [x] Zero login walls before your first word
 - [x] Zero sync spinners competing for peripheral attention
-- [x] Zero telemetry pings leaking document titles or usage cadence
-- [x] Instant cold start powered by cached Service Worker assets
+- [x] Zero telemetry pings leaking document titles or writing cadence
+- [x] Instant cold starts powered by cached Service Worker assets
 
-Local-first software is not merely a performance optimization or a privacy checkbox. It is a return to software as a **personal instrument**—something you own, control, and open in silence, ready the moment a thought arrives.
+Local-first architecture turns a browser app into a personal writing instrument that opens in silence, responds immediately, and leaves your words strictly under your control.
 
-## References & Further Reading
+## References and further reading
 
-- Ink & Switch (2019), [Local-First Software: You Own Your Data, in spite of the Cloud](https://www.inkandswitch.com/local-first/) — Martin Kleppmann, Adam Wiggins, Peter van Hardenberg, and Mark McGranaghan.
-- MDN Web Docs, [BroadcastChannel API](https://developer.mozilla.org/en-US/docs/Web/API/Broadcast_Channel_API) — Same-origin cross-window messaging without server polling.
+- Ink & Switch (2019), [Local-First Software: You Own Your Data, in spite of the Cloud](https://www.inkandswitch.com/local-first/), by Martin Kleppmann, Adam Wiggins, Peter van Hardenberg, and Mark McGranaghan.
+- MDN Web Docs, [BroadcastChannel API](https://developer.mozilla.org/en-US/docs/Web/API/Broadcast_Channel_API), on same-origin cross-window messaging without server polling.

@@ -13,14 +13,14 @@ import { serializeJsonLd } from "@/lib/seo";
 export const metadata: Metadata = {
   title: "Field notes: engineering and design journal",
   description:
-    "Essays and deep-dives from Fold on local-first software architecture, IndexedDB browser storage, eviction defense, and calm digital stationery.",
+    "Engineering essays from Fold on local-first software architecture, IndexedDB browser storage, eviction defense, and calm digital stationery.",
   alternates: {
     canonical: "/blog",
   },
   openGraph: {
-    title: "Field notes: Fold",
+    title: "Field notes: engineering and design journal | Fold",
     description:
-      "Essays and deep-dives from Fold on local-first software architecture, IndexedDB browser storage, eviction defense, and calm digital stationery.",
+      "Engineering essays from Fold on local-first software architecture, IndexedDB browser storage, eviction defense, and calm digital stationery.",
     url: "/blog",
     siteName: SITE_CONFIG.name,
     type: "website",
@@ -36,9 +36,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Field notes: Fold",
+    title: "Field notes: engineering and design journal | Fold",
     description:
-      "Essays and deep-dives from Fold on local-first software architecture, IndexedDB browser storage, and calm digital stationery.",
+      "Engineering essays from Fold on local-first software architecture, IndexedDB browser storage, eviction defense, and calm digital stationery.",
     creator: SITE_CONFIG.author.handle,
     images: ["/opengraph-image"],
   },
@@ -122,7 +122,7 @@ export default function BlogPage() {
           {/* Editorial Header */}
           <header className="mx-auto mb-10 max-w-[740px] text-center sm:mb-12">
             <h1 className="text-[clamp(2.25rem,5vw,3.35rem)] font-bold leading-[1.1] tracking-[-0.03em] text-[var(--ink)] [text-wrap:balance]">
-              Notes on local-first craft and quiet software
+              Notes on local-first design and quiet software
             </h1>
 
             <p className="mx-auto mt-4 max-w-[580px] text-[15.5px] leading-[1.68] text-[var(--muted)] [text-wrap:pretty]">

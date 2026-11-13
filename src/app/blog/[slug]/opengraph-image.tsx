@@ -130,29 +130,18 @@ export default async function Image({
                   }}
                 >
                   <svg
-                    width="20"
-                    height="20"
+                    width="22"
+                    height="22"
                     viewBox="0 0 24 24"
                     fill="none"
                   >
                     <path
-                      d="M5.75 3.25h8l5 5v12.5h-13z"
-                      stroke="#e07b56"
-                      strokeWidth="1.8"
-                      strokeLinejoin="round"
+                      d="M6.5 3.5h7l4.5 4.5V19a1.5 1.5 0 0 1-1.5 1.5h-10A1.5 1.5 0 0 1 5 19V5A1.5 1.5 0 0 1 6.5 3.5Z"
+                      fill="#fbf8f0"
                     />
-                    <path
-                      d="M13.75 3.25v5h5"
-                      stroke="#e07b56"
-                      strokeWidth="1.8"
-                      strokeLinejoin="round"
-                    />
-                    <path
-                      d="M8.75 12h5.5M8.75 15.5h3.5"
-                      stroke="#e07b56"
-                      strokeWidth="1.8"
-                      strokeLinecap="round"
-                    />
+                    <path d="M13.5 3.5v3.5A1 1 0 0 0 14.5 8H18Z" fill="#e07b56" />
+                    <rect x="7.75" y="11" width="7" height="1.6" rx="0.8" fill="#191712" />
+                    <rect x="7.75" y="14.2" width="4.8" height="1.6" rx="0.8" fill="#b8452c" />
                   </svg>
                 </div>
                 <div

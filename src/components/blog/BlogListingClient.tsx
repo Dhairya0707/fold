@@ -328,7 +328,7 @@ export function BlogListingClient({
                 <div className="flex flex-wrap items-center gap-2.5">
                   <span className="inline-flex items-center gap-1.5 rounded-[6px] bg-[var(--accent-soft)] px-2.5 py-1 font-mono text-[10.5px] font-bold uppercase tracking-[0.08em] text-[var(--accent)]">
                     <Sparkles className="h-3 w-3" />
-                    <span>Featured Essay</span>
+                    <span>Featured essay</span>
                   </span>
                   <span className="rounded-[6px] border border-[var(--border)] bg-[var(--surface-muted)] px-2.5 py-1 font-mono text-[10.5px] font-semibold uppercase tracking-[0.07em] text-[var(--ink)]">
                     {featuredPost.category}
@@ -412,7 +412,7 @@ export function BlogListingClient({
               <div className="rounded-[14px] border border-[var(--border)] bg-[var(--surface-muted)]/75 p-4 sm:p-5">
                 <div className="mb-3 flex items-center justify-between border-b border-[var(--border)] pb-2.5">
                   <span className="font-mono text-[10px] font-bold uppercase tracking-[0.09em] text-[var(--accent)]">
-                    Essay Outline
+                    Essay outline
                   </span>
                   <span className="font-mono text-[10.5px] text-[var(--faint)]">
                     {featuredPost.wordCount.toLocaleString()} words ·{" "}

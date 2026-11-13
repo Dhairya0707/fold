@@ -14,16 +14,16 @@ import { SiteFooter } from "@/components/landing/SiteFooter";
 import { SITE_CONFIG } from "@/lib/site";
 
 export const metadata: Metadata = {
-  title: "Terms of use",
+  title: "Terms of use: MIT open-source local-first notes",
   description:
-    "Straightforward Terms of Use for Fold: MIT-licensed client-side software, 100% user ownership of notes, local backup responsibility, and warranty disclaimers.",
+    "Terms of use for Fold: MIT-licensed local-first software, full user ownership of notes, local backup responsibility, and warranty disclaimers.",
   alternates: {
     canonical: "/terms",
   },
   openGraph: {
-    title: "Terms of use: Fold",
+    title: "Terms of use: MIT open-source local-first notes | Fold",
     description:
-      "MIT-licensed local-first notes workspace. You own 100% of your notes, drafts, and exported vaults.",
+      "Terms of use for Fold: MIT-licensed local-first software, full user ownership of notes, local backup responsibility, and warranty disclaimers.",
     url: `${SITE_CONFIG.url}/terms`,
     siteName: SITE_CONFIG.name,
     type: "website",
@@ -39,9 +39,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Terms of use: Fold",
+    title: "Terms of use: MIT open-source local-first notes | Fold",
     description:
-      "Straightforward Terms of Use for Fold: MIT License, 100% user data ownership, and local backup responsibility.",
+      "Terms of use for Fold: MIT-licensed local-first software, full user ownership of notes, local backup responsibility, and warranty disclaimers.",
     creator: SITE_CONFIG.author.handle,
     images: ["/opengraph-image"],
   },

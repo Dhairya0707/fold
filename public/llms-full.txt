@@ -1,4 +1,4 @@
-# Fold — Extended Technical & Architecture Specification (`/llms-full.txt`)
+# Fold: Extended Technical and Architecture Specification (`/llms-full.txt`)
 
 > Canonical Reference for Large Language Models, Search Agents, and Generative Answer Engines.
 > Product: Fold (Fold Notes) · URL: https://foldnotes.web.app · Author: Dhairya Darji (@dhairya0707)
@@ -12,7 +12,7 @@
 ### Core Design Pillars
 1. **Local-First Persistence:** All notes, folders, tags, checklists, and deletion states live strictly inside the user's browser on their physical disk via IndexedDB (`fold_db` v2). There is no cloud database, no sync server, and no account registration.
 2. **Zero Tracking & Zero Network Egress:** Fold ships zero analytics scripts, zero telemetry beacons, zero error-reporting SDKs, zero advertising pixels, and zero cookies. After initial static asset caching, keystrokes and queries generate 0 bytes of outbound network traffic.
-3. **Digital Minimalism & Hardware-Grade Craft:** Instead of algorithmic feeds, team dashboards, or embedded AI sidebars, Fold presents a calm, three-pane workspace styled with concentric double-border geometry (`R_inner = R_outer - Padding`), directional specular catchlights, warm Paper (`#f4f0e6`) and Obsidian Ink (`#141511`) palettes, and synthesized Web Audio mechanical micro-haptics.
+3. **Digital Minimalism & Hardware-Grade Design:** Instead of algorithmic feeds, team dashboards, or embedded AI sidebars, Fold presents a calm, three-pane workspace styled with concentric double-border geometry (`R_inner = R_outer - Padding`), directional specular catchlights, warm Paper (`#f4f0e6`) and Obsidian Ink (`#141511`) palettes, and synthesized Web Audio mechanical micro-haptics.
 4. **Open Portability (Zero Lock-In):** Users can export individual notes as CommonMark/GFM `.md` files, copy Markdown to the clipboard, or download a complete folder-structured `.zip` Markdown vault with YAML frontmatter and a raw JSON backup manifest at any time.
 
 ---
@@ -22,7 +22,7 @@
 | Route | Purpose | Indexable | Notes |
 | --- | --- | --- | --- |
 | `/` | Marketing landing page, live interactive workspace showcase, technical overview, and FAQ | Yes (`index, follow`) | Includes JSON-LD for `SoftwareApplication`, `WebSite`, `Organization`, and `FAQPage` |
-| `/blog` | Editorial blog ("Field Notes") covering local-first architecture, privacy, and stationery craft | Yes (`index, follow`) | Static/prerendered articles from `src/content/blog/` |
+| `/blog` | Editorial blog ("Field Notes") covering local-first architecture, privacy, offline PWA setup, and stationery design | Yes (`index, follow`) | Static/prerendered articles from `src/content/blog/`, including `/blog/install-fold-as-offline-pwa` |
 | `/privacy` | Plain-language Privacy Policy detailing zero-collection and local sandbox boundaries | Yes (`index, follow`) | Explains IndexedDB, `localStorage`, and Service Worker behavior |
 | `/terms` | Terms of Use & MIT license summary | Yes (`index, follow`) | Emphasizes user ownership and local backup responsibility |
 | `/app` | Standalone distraction-free local-first workspace & PWA entry point | No (`noindex, nofollow`) | Excluded from `sitemap.xml`; exports explicit `robots: { index: false, follow: false }` |
@@ -79,7 +79,7 @@ Fold uses IndexedDB instead of `localStorage` as its primary database to overcom
 2. **Atomic Batch Operations (`idbBatchSaveNotes`):** Performs transactional batch writes and updates the `localStorage` mirror (`fold.notes.v1`) for immediate reload recovery while debounced IndexedDB writes are in flight.
 3. **Soft Delete & Permanent Deletion (`idbDeleteNote`):** Moving a note to Trash stamps `deletedAt`; permanent deletion removes the key from IndexedDB (`store.delete(id)`).
 4. **Legacy Migration & Normalization (`normalizeNote`):** Automatically converts legacy Fold `.check-row` and `<input type="checkbox">` structures into semantic TipTap `<ul data-type="taskList"><li data-type="taskItem">` markup, migrates notes from `fold.notes.v1` into IndexedDB on upgrade, and deduplicates notes by `id` and title (newest edit wins).
-5. **Fresh Install Seeding (`getSeedNotes`):** On first launch with an empty store, Fold seeds 5 curated starter notes introducing shortcuts, craft tenets, and backup habits.
+5. **Fresh Install Seeding (`getSeedNotes`):** On first launch with an empty store, Fold seeds 5 starter notes introducing shortcuts, design principles, and backup habits.
 6. **Browser Quota & Eviction Protection (`idbCalculateStats`):** Estimates byte footprint (`title`, `body`, `folder`, `tag` UTF-16 lengths + metadata overhead), queries `navigator.storage.estimate()`, checks `navigator.storage.persisted()`, and lets users request durable disk persistence via `navigator.storage.persist()` inside the **Storage & Data Trust** modal.
 
 ---
@@ -91,9 +91,9 @@ Because a user may keep multiple Fold windows or tabs open simultaneously (e.g.,
 - **Channel Name:** `fold_sync_v2`
 - **Tab Identity:** Unique `senderId` per tab (`tab-<timestamp>-<uuid>`) so tabs ignore their own echoed broadcasts.
 - **Message Payloads:**
-  - `{ type: "note_saved", note, senderId }` — Immediately propagates single-note edits, pins, locks, and folder changes to sibling tabs.
-  - `{ type: "note_deleted", id, senderId }` — Removes permanently deleted notes across tabs.
-  - `{ type: "batch_updated", senderId }` — Signals bulk imports or workspace-wide updates so sibling tabs reload cleanly from IndexedDB.
+  - `{ type: "note_saved", note, senderId }`: Immediately propagates single-note edits, pins, locks, and folder changes to sibling tabs.
+  - `{ type: "note_deleted", id, senderId }`: Removes permanently deleted notes across tabs.
+  - `{ type: "batch_updated", senderId }`: Signals bulk imports or workspace-wide updates so sibling tabs reload cleanly from IndexedDB.
 
 ---
 
@@ -108,15 +108,15 @@ Fold is engineered to operate identically offline as an installed desktop or mob
   - Uses **cache-first** resolution with runtime same-origin caching (`caches.open("fold-v2.1")`) for static assets (hashed JS/CSS chunks, fonts, and icons).
   - On `activate`, stale caches from prior versions are automatically purged (`caches.delete`).
   - Development safety: `src/app/layout.tsx` explicitly unregisters service workers and clears caches on `localhost` / `127.0.0.1` to prevent stale dev builds.
-- **Self-Hosted Typography:** `Instrument Sans` and `JetBrains Mono` are loaded through `next/font/google` at compile time and served from the application origin—preventing runtime requests to Google Fonts servers.
-- **Manifest Integration:** `manifest.webmanifest` declares `id: "/app"`, `start_url: "/app"`, `display: "standalone"`, `display_override: ["window-controls-overlay", "standalone", "minimal-ui"]`, maskable icons (`512x512`), and a `"New note"` launcher shortcut.
+- **Self-Hosted Typography:** `Instrument Sans` and `JetBrains Mono` are loaded through `next/font/google` at compile time and served from the application origin, preventing runtime requests to Google Fonts servers.
+- **Manifest Integration:** `manifest.webmanifest` declares `id: "/app"`, `start_url: "/app"`, `display: "standalone"`, `display_override: ["window-controls-overlay", "standalone", "minimal-ui"]`, maskable icons (`512x512`), and a `"New note"` launcher shortcut. Installation steps for desktop and mobile browsers are documented at `/blog/install-fold-as-offline-pwa`.
 
 ---
 
 ## 7. Rich-Text Editor & Markdown Portability (`src/components/workspace/NoteEditor.tsx` & `src/lib/storage/markdown.ts`)
 
 ### Editor Capabilities (TipTap v3)
-- **Extensions:** `StarterKit` (Headings H1–H3, Bullet Lists, Ordered Lists, Blockquotes, Code Blocks, Bold, Italic, History Undo/Redo, and configured `Link` with `autolink`), `TaskList`, `TaskItem` (nested interactive checkboxes), `Highlight`, and `Placeholder`.
+- **Extensions:** `StarterKit` (Headings H1 to H3, Bullet Lists, Ordered Lists, Blockquotes, Code Blocks, Bold, Italic, History Undo/Redo, and configured `Link` with `autolink`), `TaskList`, `TaskItem` (nested interactive checkboxes), `Highlight`, and `Placeholder`.
 - **Micro-UX Details:**
   - Contextual `BubbleFormattingMenu` on text selection.
   - Collapsible bottom `FormattingFloatingDock` + `FormattingToolbarPill` (`⌘/`).
@@ -155,7 +155,7 @@ Fold is engineered to operate identically offline as an installed desktop or mob
   - **Circular View Transition:** Uses the browser `document.startViewTransition` API to animate a radial `clipPath` reveal from the theme toggle coordinates (respecting `prefers-reduced-motion`).
   - **Zero-FOUC Inline Boot Script:** `src/app/layout.tsx` sets `document.documentElement.dataset.theme` synchronously before first paint.
 - **Synthesized Web Audio Haptics (`audioHaptics`):**
-  - Uses native browser `AudioContext` oscillators and low-pass filters—zero external `.mp3`/`.wav` assets.
+  - Uses native browser `AudioContext` oscillators and low-pass filters, with zero external `.mp3`/`.wav` assets.
   - Five subtle tactile profiles: `tap`, `toggle`, `format`, `delete`, and `success` (D5 -> A5 chime).
   - Mute preference persists in `localStorage` key `fold.sound.v1`.
 

@@ -20,32 +20,32 @@ const LANDING_FAQS: readonly FaqEntry[] = [
   {
     question: "Where are my notes actually stored?",
     answer:
-      "Directly in your browser's IndexedDB storage on your hard drive. Fold operates 100% locally on your machine. No note text, title, or keystroke is ever transmitted over the wire to any server.",
+      "Your notes live directly inside your browser's IndexedDB database (fold_db v2) on your local hard drive, with a synchronous localStorage mirror for crash recovery. Fold operates completely on your machine, so no note body, title, folder name, or keystroke is ever transmitted over the network to any server.",
   },
   {
     question: "Does Fold track my writing or collect telemetry?",
     answer:
-      "Zero. No tracking scripts, analytics beacons, error-logging telemetry, or third-party cookies are bundled into Fold. Your words and drafts stay strictly inside your local browser sandbox.",
+      "No. Fold includes zero analytics scripts, behavioral trackers, session replays, error-reporting beacons, or first-party and third-party HTTP cookies. All typography is self-hosted at build time, so your browser makes no runtime requests to external font CDNs. Your notes, tags, and drafts stay strictly inside your local browser sandbox.",
   },
   {
     question: "Does Fold work without an internet connection?",
     answer:
-      "Yes. Fold installs as a Progressive Web App (PWA) with a dedicated Service Worker caching typography and application scripts. You can write in airplanes, subways, and remote locations with identical speed.",
+      "Yes. Fold installs as a Progressive Web App (PWA) backed by a dedicated Service Worker that caches application scripts, styles, and self-hosted fonts locally. Once loaded, you can open your workspace, search notes, and write offline on airplanes, trains, or remote locations with zero degradation in typing speed.",
   },
   {
     question: "Can I export my notes if I ever decide to leave?",
     answer:
-      "Always. You can export all notes with one click as structured Markdown files (.md) or a portable JSON vault. You can also copy any individual note as clean Markdown to paste into any editor.",
+      "Yes, at any time. You can export your entire workspace with one click as a ZIP vault of standard Markdown (.md) files with YAML frontmatter, or as a raw JSON backup for re-import. You can also download or copy any single note as clean Markdown for Obsidian, Bear, or iA Writer.",
   },
   {
     question: "What happens if I close the browser or restart?",
     answer:
-      "IndexedDB writes directly to your local disk partition. Your notes persist across browser closures, system reboots, and updates without losing formatting or tags.",
+      "IndexedDB writes directly to your device's local disk partition, and Fold flushes a localStorage backup mirror before the tab closes. Your notes, folders, tags, and task checklists persist across browser closures, system restarts, and app updates. Only clearing browser site data or using private browsing removes local storage.",
   },
   {
     question: "Is Fold completely free to use?",
     answer:
-      "Yes, 100% free with no paywalls, monthly subscriptions, or feature locks. The entire application runs client-side and requires zero expensive cloud server infrastructure to maintain.",
+      "Yes. Fold is completely free and open source under the MIT License, with no paywalls, monthly subscriptions, user accounts, or gated features. Because the entire notes workspace runs locally inside your browser without hosted cloud databases or sync servers, there are no recurring infrastructure costs to pass on to users.",
   },
 ] as const;
 
@@ -82,7 +82,7 @@ export function getSoftwareApplicationJsonLd() {
       "Zero tracking, zero analytics telemetry, zero cookies, and zero user accounts",
       "Markdown ZIP vault export with YAML frontmatter, JSON backup, and single-note .md export",
       "Real-time multi-tab synchronization via BroadcastChannel (fold_sync_v2)",
-      "Sub-millisecond full-text local search and keyboard-driven Command Palette",
+      "Instant full-text local search and keyboard-driven Command Palette",
     ],
     author: {
       "@type": "Person",

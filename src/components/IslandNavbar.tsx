@@ -65,23 +65,24 @@ export function IslandNavbar() {
             {/* Brand Mark */}
             <Link className="nav-brand" href="/" aria-label="Fold home">
               <span className="nav-brand__bezel" aria-hidden="true">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
                   <path
-                    d="M5.75 3.25h8l5 5v12.5h-13z"
+                    d="M6.25 3.5h7.25l4.75 4.75V19a1.75 1.75 0 0 1-1.75 1.75H6.25A1.75 1.75 0 0 1 4.5 19V5.25A1.75 1.75 0 0 1 6.25 3.5Z"
                     stroke="currentColor"
-                    strokeWidth="1.6"
+                    strokeWidth="1.65"
                     strokeLinejoin="round"
                   />
                   <path
-                    d="M13.75 3.25v5h5"
+                    d="M13.5 3.5v3.5a1.25 1.25 0 0 0 1.25 1.25h3.5Z"
+                    fill="var(--accent, #b8452c)"
                     stroke="currentColor"
-                    strokeWidth="1.6"
+                    strokeWidth="1.35"
                     strokeLinejoin="round"
                   />
                   <path
-                    d="M8.75 12h5.5M8.75 15.5h3.5"
+                    d="M8.5 12h6M8.5 15.25h3.75"
                     stroke="currentColor"
-                    strokeWidth="1.6"
+                    strokeWidth="1.65"
                     strokeLinecap="round"
                   />
                 </svg>

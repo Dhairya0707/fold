@@ -172,26 +172,15 @@ export function Sidebar({ isEmbedded = false }: { isEmbedded?: boolean }) {
               className="group flex items-center gap-2 text-inherit no-underline"
               title="Back to Fold home"
             >
-              <span className="flex h-6 w-6 items-center justify-center rounded-[7px] border border-[var(--accent,#b8452c)]/20 bg-[var(--accent,#b8452c)] text-[var(--accent-fg,#ffffff)] shadow-xs transition group-hover:scale-105">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+              <span className="flex h-6 w-6 items-center justify-center rounded-[7px] border border-white/10 bg-[#141511] shadow-xs transition group-hover:scale-105 dark:border-white/15">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                   <path
-                    d="M5.75 3.25h8l5 5v12.5h-13z"
-                    stroke="currentColor"
-                    strokeWidth="1.6"
-                    strokeLinejoin="round"
+                    d="M6.5 3.5h7l4.5 4.5V19a1.5 1.5 0 0 1-1.5 1.5h-10A1.5 1.5 0 0 1 5 19V5A1.5 1.5 0 0 1 6.5 3.5Z"
+                    fill="#fbf8f0"
                   />
-                  <path
-                    d="M13.75 3.25v5h5"
-                    stroke="currentColor"
-                    strokeWidth="1.6"
-                    strokeLinejoin="round"
-                  />
-                  <path
-                    d="M8.75 12h5.5M8.75 15.5h3.5"
-                    stroke="currentColor"
-                    strokeWidth="1.6"
-                    strokeLinecap="round"
-                  />
+                  <path d="M13.5 3.5v3.5A1 1 0 0 0 14.5 8H18Z" fill="#e07b56" />
+                  <rect x="7.75" y="11.25" width="7" height="1.5" rx="0.75" fill="#191712" />
+                  <rect x="7.75" y="14.25" width="5" height="1.5" rx="0.75" fill="#b8452c" />
                 </svg>
               </span>
               <span className="text-[17px] font-semibold tracking-tight text-[var(--ink,#191712)] dark:text-[#f4f0e6]">
