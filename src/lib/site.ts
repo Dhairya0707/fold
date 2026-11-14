@@ -30,8 +30,13 @@ export const SITE_CONFIG = {
   shortName: "Fold",
   legalName: "Fold Notes",
   tagline: "Notes without the noise",
+  title: "Fold: Private local-first notes app without the noise",
+  /** 149 chars: within the 150-160 limit for search engine SERP snippets */
   description:
-    "A private local-first notes app powered by on-device IndexedDB. Write offline with zero tracking, zero cookies, and one-click Markdown or JSON export.",
+    "A private local-first notes app powered by on-device IndexedDB. Write offline with zero tracking, zero cookies, and instant Markdown or JSON export.",
+  /** 121 chars: optimized under 125 chars for social cards (Facebook, X, LinkedIn, Discord) */
+  shortDescription:
+    "Private local-first notes powered by on-device IndexedDB. Offline-ready, zero tracking, zero cookies, and instant export.",
   /** Production domain used for canonical links and Open Graph metadata */
   url: resolveSiteUrl(process.env.NEXT_PUBLIC_SITE_URL),
   author: {

@@ -67,8 +67,8 @@ export function getSoftwareApplicationJsonLd() {
       "Requires JavaScript and IndexedDB. Supports offline use via Service Worker.",
     inLanguage: "en-US",
     isAccessibleForFree: true,
-    image: `${BASE_URL}/opengraph-image`,
-    screenshot: `${BASE_URL}/opengraph-image`,
+    image: `${BASE_URL}/og-image.png`,
+    screenshot: `${BASE_URL}/og-image.png`,
     offers: {
       "@type": "Offer",
       price: "0",

@@ -33,10 +33,11 @@ export const metadata: Metadata = {
     locale: "en_US",
     images: [
       {
-        url: "/opengraph-image",
+        url: "/og-image.png",
         width: 1200,
         height: 630,
         alt: "Fold privacy policy: local-first, zero telemetry",
+        type: "image/png",
       },
     ],
   },
@@ -46,7 +47,7 @@ export const metadata: Metadata = {
     description:
       "How Fold stores notes on-device in IndexedDB (fold_db v2), syncs tabs via BroadcastChannel, and guarantees zero servers, telemetry, or cookies.",
     creator: SITE_CONFIG.author.handle,
-    images: ["/opengraph-image"],
+    images: ["/og-image.png"],
   },
 };
 
@@ -350,13 +351,19 @@ export default function PrivacyPage() {
                       id="policy-telemetry"
                       className="text-2xl font-semibold tracking-[-0.02em] text-[var(--ink)] mb-3 [text-wrap:balance]"
                     >
-                      No tracking scripts, beacons, or cookies
+                      Cookieless, privacy-focused analytics
                     </h2>
                     <p className="mb-3">
-                      Fold bundles zero analytics SDKs, behavioral trackers,
-                      session replays, or crash-reporting beacons. Specifically,
-                      Fold does not load Google Analytics, PostHog, Plausible,
-                      Mixpanel, Sentry, or advertising pixels.
+                      Fold loads a lightweight, self-hosted Umami script to count
+                      aggregate page views. Umami is completely cookieless, does not
+                      collect personal identifiers or IP addresses, and does not track
+                      users across websites. Fold does not load Google Analytics,
+                      PostHog, Mixpanel, Sentry, or advertising tracking pixels.
+                    </p>
+                    <p className="mb-3">
+                      Your notes, titles, drafts, and folder names are never transmitted
+                      to Umami or any external server. All text stays strictly within your
+                      browser storage sandbox.
                     </p>
                     <p>
                       Fold sets zero first-party or third-party HTTP cookies;{" "}

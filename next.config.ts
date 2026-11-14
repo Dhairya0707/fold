@@ -4,11 +4,11 @@ const isDev = process.env.NODE_ENV !== "production";
 
 const CSP_DIRECTIVES = [
   "default-src 'self'",
-  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}`,
+  `script-src 'self' 'unsafe-inline' https://umammi-ana-ard27.vercel.app${isDev ? " 'unsafe-eval'" : ""}`,
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob:",
   "font-src 'self'",
-  "connect-src 'self'",
+  "connect-src 'self' https://umammi-ana-ard27.vercel.app",
   "object-src 'none'",
   "base-uri 'self'",
   "form-action 'self'",

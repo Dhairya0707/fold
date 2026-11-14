@@ -1,6 +1,42 @@
 {
   "version": 2,
   "skills": {
+    "ad-copywriting": {
+      "source": "swan-gtm/gtm-skills",
+      "sourceType": "github",
+      "skillPath": "skills/ivan-falco/ad-copywriting/SKILL.md",
+      "computedHash": "c57a6dcdcce7a21d24bbd2cdbd62bda893f9e76d13cb5f06dd199c3739edeb38"
+    },
+    "aeo-visibility-tracking": {
+      "source": "swan-gtm/gtm-skills",
+      "sourceType": "github",
+      "skillPath": "skills/yahav-fuchs/aeo-visibility-tracking/SKILL.md",
+      "computedHash": "d9856cf6c16b143849451916b05135498b488e5f9e4144d5640e20b5228f714f"
+    },
+    "og-image": {
+      "source": "stevysmith/og-image-skill",
+      "sourceType": "github",
+      "skillPath": "plugins/og-image/skills/og-image/SKILL.md",
+      "computedHash": "3dcaa0c8f5394a33d46dbc63e4cec85eacb783b8724b1cd9dde77813009b7d05"
+    },
+    "reddit-account-warmup": {
+      "source": "swan-gtm/gtm-skills",
+      "sourceType": "github",
+      "skillPath": "skills/yahav-fuchs/reddit-account-warmup/SKILL.md",
+      "computedHash": "dc28f08b7f72c1e7647bec257573def3926f504e8dca06274e7d76b11f0f152a"
+    },
+    "reddit-campaign-launcher": {
+      "source": "swan-gtm/gtm-skills",
+      "sourceType": "github",
+      "skillPath": "skills/yahav-fuchs/reddit-campaign-launcher/SKILL.md",
+      "computedHash": "75c1cd0f6fc398c557f86ef3f177a1739e245b7d867c98415b60e291d4422956"
+    },
+    "reddit-comment-safety": {
+      "source": "swan-gtm/gtm-skills",
+      "sourceType": "github",
+      "skillPath": "skills/yahav-fuchs/reddit-comment-safety/SKILL.md",
+      "computedHash": "861cdbee1169ab0842b41ab94d74d14068a6e6d5f7f212fb55140e4821d2be06"
+    },
     "wensity-layout": {
       "source": "wensity/skills",
       "sourceType": "github",

@@ -30,10 +30,11 @@ export const metadata: Metadata = {
     locale: "en_US",
     images: [
       {
-        url: "/opengraph-image",
+        url: "/og-image.png",
         width: 1200,
         height: 630,
         alt: "Fold terms of use",
+        type: "image/png",
       },
     ],
   },
@@ -43,7 +44,7 @@ export const metadata: Metadata = {
     description:
       "Terms of use for Fold: MIT-licensed local-first software, full user ownership of notes, local backup responsibility, and warranty disclaimers.",
     creator: SITE_CONFIG.author.handle,
-    images: ["/opengraph-image"],
+    images: ["/og-image.png"],
   },
 };
 

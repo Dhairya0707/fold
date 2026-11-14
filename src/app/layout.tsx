@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import Script from "next/script";
 import { Instrument_Sans, JetBrains_Mono } from "next/font/google";
 import { SITE_CONFIG } from "@/lib/site";
 import "./globals.css";
@@ -30,7 +31,7 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_CONFIG.url),
   title: {
-    default: "Fold: Private local-first notes app without the noise",
+    default: SITE_CONFIG.title,
     template: "%s | Fold",
   },
   description: SITE_CONFIG.description,
@@ -61,13 +62,23 @@ export const metadata: Metadata = {
     locale: "en_US",
     url: SITE_CONFIG.url,
     siteName: "Fold",
-    title: "Fold: Private local-first notes app without the noise",
-    description: SITE_CONFIG.description,
+    title: SITE_CONFIG.title,
+    description: SITE_CONFIG.shortDescription,
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "Fold: notes without the noise",
+        type: "image/png",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Fold: Private local-first notes app without the noise",
-    description: SITE_CONFIG.description,
+    title: SITE_CONFIG.title,
+    description: SITE_CONFIG.shortDescription,
+    images: ["/og-image.png"],
     creator: SITE_CONFIG.author.handle,
   },
   robots: {
@@ -80,6 +91,9 @@ export const metadata: Metadata = {
       "max-image-preview": "large",
       "max-snippet": -1,
     },
+  },
+  verification: {
+    google: "vdJ9Ga6rCMp2NI32MyJdZY44SY20OBsZY1vPX5jaYRU",
   },
 };
 
@@ -130,7 +144,15 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body suppressHydrationWarning>{children}</body>
+      <body suppressHydrationWarning>
+        {children}
+        <Script
+          defer
+          src="https://umammi-ana-ard27.vercel.app/script.js"
+          data-website-id="1fbef849-df33-4e32-86d1-da9a9eff55a1"
+          strategy="afterInteractive"
+        />
+      </body>
     </html>
   );
 }

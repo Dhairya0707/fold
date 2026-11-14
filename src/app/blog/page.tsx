@@ -27,10 +27,11 @@ export const metadata: Metadata = {
     locale: "en_US",
     images: [
       {
-        url: "/opengraph-image",
+        url: "/og-image.png",
         width: 1200,
         height: 630,
         alt: "Fold field notes: engineering and design journal",
+        type: "image/png",
       },
     ],
   },
@@ -40,7 +41,7 @@ export const metadata: Metadata = {
     description:
       "Engineering essays from Fold on local-first software architecture, IndexedDB browser storage, eviction defense, and calm digital stationery.",
     creator: SITE_CONFIG.author.handle,
-    images: ["/opengraph-image"],
+    images: ["/og-image.png"],
   },
 };
 
